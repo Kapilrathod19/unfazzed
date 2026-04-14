@@ -173,6 +173,9 @@ class Service extends Model implements  HasMedia
     public function postJobService(){
         return $this->hasMany(PostJobServiceMapping::class, 'service_id', 'id');
     }
+    public function serviceOptions(){
+        return $this->hasMany(ServiceOption::class, 'service_id','id');
+    }
     public function serviceAddon(){
         return $this->hasMany(ServiceAddon::class, 'service_id','id');
     }

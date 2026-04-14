@@ -18,7 +18,9 @@ use App\Traits\NotificationTrait;
 use App\Models\ServiceZone;
 use Illuminate\Support\Facades\DB;
 use App\Models\ProviderZoneMapping;
+use App\Models\ServiceOption;
 use App\Models\ServiceZoneMapping;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 
@@ -602,7 +604,12 @@ class ServiceController extends Controller
 
         $globalSeoSetting = \App\Models\SeoSetting::first();
         
-        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting'));
+        $serviceOptions = [];
+        if ($servicedata && $servicedata->id) {
+            $serviceOptions = $servicedata->serviceOptions()->get();
+        }
+
+        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting', 'serviceOptions'));
     }
 
     /**
@@ -782,6 +789,76 @@ class ServiceController extends Controller
                 return redirect()->route('service.create', ['id' => $result->id])
                     ->withErrors(['service_attachment' => 'The attachments field is required.'])
                     ->withInput();
+            }
+        }
+
+        // Handle service options/save updates
+        $optionsData = $request->input('options', []);
+        if (is_array($optionsData)) {
+            $submittedOptionIds = [];
+            $optionFiles = $request->file('options') ?: [];
+
+            foreach ($optionsData as $index => $optionData) {
+                if (empty($optionData['name']) || !isset($optionData['price']) || $optionData['price'] === '') {
+                    continue;
+                }
+
+                $serviceOption = null;
+                if (!empty($optionData['id'])) {
+                    $serviceOption = ServiceOption::where('service_id', $result->id)
+                        ->where('id', $optionData['id'])
+                        ->first();
+                }
+
+                if (!$serviceOption) {
+                    $serviceOption = new ServiceOption();
+                    $serviceOption->service_id = $result->id;
+                    $serviceOption->created_by = auth()->user()->id;
+                }
+
+                $serviceOption->name = $optionData['name'];
+                $serviceOption->price = $optionData['price'];
+                $serviceOption->status = 1;
+
+                $imageFile = data_get($optionFiles, $index . '.image');
+                if ($imageFile) {
+                    if ($serviceOption->image && Storage::disk('public')->exists($serviceOption->image)) {
+                        Storage::disk('public')->delete($serviceOption->image);
+                    }
+                    $serviceOption->image = $imageFile->store('service_options', 'public');
+                }
+
+                $serviceOption->save();
+                $submittedOptionIds[] = $serviceOption->id;
+            }
+
+            if (!empty($submittedOptionIds)) {
+                $removedOptions = ServiceOption::where('service_id', $result->id)
+                    ->whereNotIn('id', $submittedOptionIds)
+                    ->get();
+
+                foreach ($removedOptions as $removedOption) {
+                    if ($removedOption->image && Storage::disk('public')->exists($removedOption->image)) {
+                        Storage::disk('public')->delete($removedOption->image);
+                    }
+                    $removedOption->forceDelete();
+                }
+            } else {
+                $removedOptions = ServiceOption::where('service_id', $result->id)->get();
+                foreach ($removedOptions as $removedOption) {
+                    if ($removedOption->image && Storage::disk('public')->exists($removedOption->image)) {
+                        Storage::disk('public')->delete($removedOption->image);
+                    }
+                    $removedOption->forceDelete();
+                }
+            }
+        } else {
+            $removedOptions = ServiceOption::where('service_id', $result->id)->get();
+            foreach ($removedOptions as $removedOption) {
+                if ($removedOption->image && Storage::disk('public')->exists($removedOption->image)) {
+                    Storage::disk('public')->delete($removedOption->image);
+                }
+                $removedOption->forceDelete();
             }
         }
         

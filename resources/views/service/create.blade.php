@@ -336,6 +336,83 @@
                             @endif
                         </div>
 
+                        @php
+                            $oldOptions = old('options', []);
+                            $optionRows = !empty($oldOptions) ? $oldOptions : (!empty($serviceOptions) ? $serviceOptions : []);
+                        @endphp
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                @php
+                                    $serviceOptionsTitle = __('messages.service_options');
+                                @endphp
+                                <h5 class="fw-bold mb-3">{{ $serviceOptionsTitle === 'messages.service_options' ? 'Service Options' : $serviceOptionsTitle }}</h5>
+                            </div>
+                            <div class="col-12">
+                                <div id="options-container">
+                                    @if (!empty($optionRows))
+                                        @foreach ($optionRows as $index => $option)
+                                            @php
+                                                $optionId = data_get($option, 'id');
+                                                $optionName = data_get($option, 'name');
+                                                $optionPrice = data_get($option, 'price');
+                                                $optionImage = data_get($option, 'image');
+                                            @endphp
+                                            <div class="option-row row mb-3 p-3 border rounded" data-index="{{ $index }}">
+                                                <input type="hidden" name="options[{{ $index }}][id]" value="{{ $optionId }}">
+                                                <div class="form-group col-md-4">
+                                                    {{ html()->label(__('messages.name') . ' <span class="text-danger">*</span>', "options[{$index}][name]")->class('form-control-label') }}
+                                                    {{ html()->text("options[{$index}][name]", $optionName)->placeholder(__('messages.name'))->class('form-control option-name')->required() }}
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    {{ html()->label(__('messages.price') . ' <span class="text-danger">*</span>', "options[{$index}][price]")->class('form-control-label') }}
+                                                    {{ html()->text("options[{$index}][price]", $optionPrice)->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$')->required() }}
+                                                </div>
+                                                <div class="form-group col-md-3">
+                                                    {{ html()->label(__('messages.image') . ' (Optional)', "options[{$index}][image]")->class('form-control-label') }}
+                                                    <input type="file" name="options[{{ $index }}][image]" class="form-control option-image" accept="image/*">
+                                                    @if (!empty($optionImage))
+                                                        <div class="mt-2">
+                                                            <img src="{{ asset('storage/'.$optionImage) }}"
+                                                                alt="Option Image"
+                                                                style="max-width:80px;max-height:80px;">
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="form-group col-md-1 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-danger remove-option w-100">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="option-row row mb-3 p-3 border rounded" data-index="0">
+                                            <div class="form-group col-md-4">
+                                                {{ html()->label(__('messages.name') . ' <span class="text-danger">*</span>', 'options[0][name]')->class('form-control-label') }}
+                                                {{ html()->text('options[0][name]', '')->placeholder(__('messages.name'))->class('form-control option-name')->required() }}
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                {{ html()->label(__('messages.price') . ' <span class="text-danger">*</span>', 'options[0][price]')->class('form-control-label') }}
+                                                {{ html()->text('options[0][price]', '')->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$')->required() }}
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                {{ html()->label(__('messages.image') . ' (Optional)', 'options[0][image]')->class('form-control-label') }}
+                                                <input type="file" name="options[0][image]" class="form-control option-image" accept="image/*">
+                                            </div>
+                                            <div class="form-group col-md-1 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-danger remove-option w-100" style="display:none;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success add-option mt-2">
+                                    <i class="fa fa-plus"></i> {{ __('messages.add') }}
+                                </button>
+                            </div>
+                        </div>
+
                         @if (auth()->user()->hasAnyRole(['admin', 'demo_admin']) &&
                                 isset($servicedata) &&
                                 $servicedata->is_service_request == 1 &&
@@ -1044,6 +1121,85 @@
                         }
                     });
                 });
+
+                // Service Option rows
+                const optionContainer = document.getElementById('options-container');
+                let optionIndex = optionContainer ? optionContainer.querySelectorAll('.option-row').length : 0;
+                const optionLabelName = "{{ __('messages.name') }}";
+                const optionLabelPrice = "{{ __('messages.price') }}";
+                const optionLabelImage = "{{ __('messages.image') }}";
+
+                function updateOptionDeleteButtons() {
+                    const rows = optionContainer.querySelectorAll('.option-row');
+                    rows.forEach(function(row) {
+                        const button = row.querySelector('.remove-option');
+                        if (button) {
+                            button.style.display = rows.length > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                function createOptionRow(index, option = {}) {
+                    const row = document.createElement('div');
+                    row.className = 'option-row row mb-3 p-3 border rounded';
+                    row.dataset.index = index;
+                    const nameValue = option.name ? option.name : '';
+                    const priceValue = option.price ? option.price : '';
+                    const idValue = option.id ? option.id : '';
+                    const imageUrl = option.image ? option.image : '';
+
+                    row.innerHTML = `
+                        <input type="hidden" name="options[${index}][id]" value="${idValue}">
+                        <div class="form-group col-md-4">
+                            <label class="form-control-label" for="options[${index}][name]">${optionLabelName} <span class="text-danger">*</span></label>
+                            <input type="text" name="options[${index}][name]" class="form-control option-name" value="${nameValue}" placeholder="${optionLabelName}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="form-control-label" for="options[${index}][price]">${optionLabelPrice} <span class="text-danger">*</span></label>
+                            <input type="text" name="options[${index}][price]" class="form-control option-price" value="${priceValue}" placeholder="${optionLabelPrice}" step="any" pattern="^\\d+(\\.\\d{1,2})?$" required>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="form-control-label" for="options[${index}][image]">${optionLabelImage} (Optional)</label>
+                            <input type="file" name="options[${index}][image]" class="form-control option-image" accept="image/*">
+                            ${imageUrl ? `<div class="mt-2"><img src="${imageUrl.startsWith('http') ? imageUrl : '/storage/' + imageUrl}" alt="Option Image" style="max-width: 80px; max-height: 80px;"></div>` : ''}
+                        </div>
+                        <div class="form-group col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-sm btn-danger remove-option w-100">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    return row;
+                }
+
+                const addOptionButton = document.querySelector('.add-option');
+                if (addOptionButton) {
+                    addOptionButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const row = createOptionRow(optionIndex, {});
+                        optionContainer.appendChild(row);
+                        optionIndex++;
+                        updateOptionDeleteButtons();
+                    });
+                }
+
+                if (optionContainer) {
+                    optionContainer.addEventListener('click', function(event) {
+                        const removeButton = event.target.closest('.remove-option');
+                        if (!removeButton) {
+                            return;
+                        }
+                        event.preventDefault();
+                        const row = removeButton.closest('.option-row');
+                        if (row) {
+                            row.remove();
+                            updateOptionDeleteButtons();
+                        }
+                    });
+
+                    updateOptionDeleteButtons();
+                }
             });
         </script>
     @endsection

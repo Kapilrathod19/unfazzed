@@ -41,6 +41,13 @@ class ServiceRequest extends FormRequest
             $rules['meta_keywords'] = 'required|string';
         }
 
+        if (request()->has('options')) {
+            $rules['options'] = 'array';
+            $rules['options.*.name'] = 'required|string';
+            $rules['options.*.price'] = 'required|numeric|min:0';
+            $rules['options.*.image'] = 'nullable|image|mimes:jpeg,jpg,png,webp,gif';
+        }
+
         return $rules;
     }
     public function messages()
