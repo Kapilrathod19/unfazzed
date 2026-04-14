@@ -544,16 +544,14 @@ class ServiceController extends Controller
             ])->find($id);
         }
 
-        // Get provider's mapped zones with necessary data
-        $serviceZones = ProviderZoneMapping::with('zone')
-            ->where('provider_id', $auth_user->id)
+        // Get all available zones for selection
+        $serviceZones = ServiceZone::where('status', 1)
+            ->whereNull('deleted_at')
             ->get()
-            ->map(function ($mapping) {
+            ->map(function ($zone) {
                 return [
-                    'id' => $mapping->zone->id,
-                    'name' => $mapping->zone->name,
-                    'provider_id' => $mapping->provider_id,
-                    'zone_id' => $mapping->zone_id
+                    'id' => $zone->id,
+                    'name' => $zone->name,
                 ];
             });
 
@@ -603,6 +601,7 @@ class ServiceController extends Controller
         }
 
         $globalSeoSetting = \App\Models\SeoSetting::first();
+        
         return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting'));
     }
 
@@ -629,14 +628,14 @@ class ServiceController extends Controller
         $translatableAttributes = ['name', 'description'];
 
         $services['service_type'] = !empty($request->service_type) ? $request->service_type : 'service';
-        $services['provider_id'] = !empty($request->provider_id) ? $request->provider_id : auth()->user()->id;
+        $services['provider_id'] = $request->provider_id ?? null;
         if (auth()->user()->hasRole('user')) {
             $services['service_type'] = 'user_post_service';
         }
 
         
 
-        if ($request->id == null && default_earning_type() === 'subscription') {
+        if ($request->id == null && default_earning_type() === 'subscription' && !empty($services['provider_id'])) {
             $exceed =  get_provider_plan_limit($services['provider_id'], 'service');
             if (!empty($exceed)) {
                 if ($exceed == 1) {
@@ -662,7 +661,7 @@ class ServiceController extends Controller
         }
 
         if ($request->id && $request->id != null) {
-            $service_zone_id = ServiceZoneMapping::where('id', $request->id)->pluck('zone_id')->toArray();
+            $service_zone_id = ServiceZoneMapping::where('service_id', $request->id)->pluck('zone_id')->toArray();
             $service_zones = $request->service_zones;
             if (is_string($service_zones)) {
                 $decoded = json_decode($service_zones, true);
@@ -679,8 +678,8 @@ class ServiceController extends Controller
             ServiceZoneMapping::where('service_id', $request->id)->whereIn('zone_id', $removeZone)->delete();
         }
 
-        $services['provider_id'] = !empty($services['provider_id']) ?  $services['provider_id']     : auth()->user()->id;
-        if (!empty($services['is_featured']) && $services['is_featured'] == 1) {
+        // $services['provider_id'] = !empty($services['provider_id']) ?  $services['provider_id']     : auth()->user()->id;
+        if (!empty($services['is_featured']) && $services['is_featured'] == 1 && !empty($services['provider_id'])) {
             $exceed =  get_provider_plan_limit($services['provider_id'], 'featured_service');
             if (!empty($exceed)) {
                 if ($exceed == 1) {
@@ -737,13 +736,13 @@ class ServiceController extends Controller
             try {
                 $serviceZones = is_string($request->service_zones) ? json_decode($request->service_zones, true) : $request->service_zones;
                 if (is_array($serviceZones)) {
-                    $result->zones()->detach();
-                    $providerZones = ProviderZoneMapping::where('provider_id', $services['provider_id'])
-                        ->pluck('zone_id')
-                        ->toArray();
-                    $validZones = array_intersect($serviceZones, $providerZones);
-                    if (!empty($validZones)) {
-                        foreach ($validZones as $zoneId) {
+                    // Delete existing zone mappings
+                    ServiceZoneMapping::where('service_id', $result->id)->delete();
+                    
+                    // Insert all selected zones directly without provider validation
+                    $serviceZones = array_filter(array_map('intval', $serviceZones));
+                    if (!empty($serviceZones)) {
+                        foreach ($serviceZones as $zoneId) {
                             ServiceZoneMapping::create([
                                 'service_id' => $result->id,
                                 'zone_id' => $zoneId,
@@ -754,7 +753,7 @@ class ServiceController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                \Log::error('Error mapping service zones: ' . $e->getMessage(), [
+                Log::error('Error mapping service zones: ' . $e->getMessage(), [
                     'service_id' => $result->id,
                     'zones' => $serviceZones ?? [],
                     'error' => $e->getMessage(),
@@ -785,7 +784,9 @@ class ServiceController extends Controller
                     ->withInput();
             }
         }
+        
         $message = __('messages.update_form', ['form' => __('messages.service')]);
+
         if ($result->wasRecentlyCreated) {
             $message = __('messages.save_form', ['form' => __('messages.service')]);
         }

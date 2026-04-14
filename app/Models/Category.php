@@ -57,6 +57,11 @@ class Category extends BaseModel implements HasMedia
     {
         return $this->belongsToMany(ServiceZone::class, 'category_service_zone');
     }
+
+    public function providers()
+    {
+        return $this->belongsToMany(User::class, 'category_user', 'category_id', 'user_id');
+    }
     
     /**
      * Register media collections

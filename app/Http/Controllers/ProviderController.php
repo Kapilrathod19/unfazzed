@@ -201,7 +201,15 @@ class ProviderController extends Controller
             $selectedZones = $providerdata->serviceZones()->pluck('service_zones.id')->toArray();
         }
 
-        return view('provider.create', compact('pageTitle', 'providerdata', 'auth_user', 'serviceZones', 'selectedZones'));
+        // Get selected categories for existing provider
+        $selectedCategories = [];
+        $selectedCategoryObjects = collect();
+        if ($providerdata && $providerdata->id) {
+            $selectedCategories = $providerdata->categories()->pluck('categories.id')->toArray();
+            $selectedCategoryObjects = $providerdata->categories()->get();
+        }
+
+        return view('provider.create', compact('pageTitle', 'providerdata', 'auth_user', 'serviceZones', 'selectedZones', 'selectedCategories', 'selectedCategoryObjects'));
     }
 
     /**
@@ -272,6 +280,13 @@ class ProviderController extends Controller
             $user->serviceZones()->sync($request->service_zones);
         } else {
             $user->serviceZones()->detach();
+        }
+
+        // Handle categories
+        if ($request->has('category_ids')) {
+            $user->categories()->sync($request->category_ids);
+        } else {
+            $user->categories()->detach();
         }
 
         if ($data['status'] == 1 && auth()->user()->hasAnyRole(['admin'])) {

@@ -136,6 +136,18 @@
                                 __('messages.tax')])) }}
                             </div>
                             <div class="form-group col-md-4">
+                                {{ html()->label(__('messages.select_name', ['select' => __('messages.category')]),
+                                'category_ids')->class('form-control-label') }}
+                                <br />
+                                {{ html()->select('category_ids[]', $selectedCategoryObjects->pluck('name', 'id'), $selectedCategories)
+                                ->class('select2js form-group')
+                                ->id('category_ids')
+                                ->multiple()
+                                ->attribute('data-placeholder', __('messages.select_name', ['select' =>
+                                __('messages.category')]))
+                                ->attribute('data-ajax--url', route('ajax-list', ['type' => 'category'])) }}
+                            </div>
+                            <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.service_zone')]),
                                 'service_zones')->class('form-control-label') }}
                                 <br />

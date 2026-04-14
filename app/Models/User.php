@@ -321,6 +321,11 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(ServiceZone::class, 'provider_zone_mappings', 'provider_id', 'zone_id');
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'category_user', 'user_id', 'category_id');
+    }
+
     public static function seedSpecificUsers()
     {
         // Define the users to be seeded

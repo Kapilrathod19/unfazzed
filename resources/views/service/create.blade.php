@@ -23,49 +23,48 @@
                         {{ html()->hidden('id', $servicedata->id ?? null) }}
 
                         @include('partials._language_toggale')
-                        @foreach($language_array as $language)
-                        <div id="form-language-{{ $language['id'] }}" class="language-form" style="display: {{ $language['id'] == app()->getLocale() ? 'block' : 'none' }};">
-                            <div class="row">
-                                @foreach(['name' => __('messages.name'), 'description' => __('messages.description')] as $field => $label)
-                                <div class="form-group col-md-{{ $field === 'name' ? '4' : '12' }}">
-                                    {{ html()->label($label . ($field === 'name' ? ' <span class="text-danger">*</span>' : ''), $field)->class('form-control-label language-label') }}
-                                    @php
-                                        $value = $language['id'] == 'en' 
-                                            ? $servicedata ? $servicedata->translate($field, 'en') : '' 
-                                            : ($servicedata ? $servicedata->translate($field, $language['id']) : '');
-                                        $name = $language['id'] == 'en' ? $field : "translations[{$language['id']}][$field]";
-                                    @endphp
+                        @foreach ($language_array as $language)
+                            <div id="form-language-{{ $language['id'] }}" class="language-form"
+                                style="display: {{ $language['id'] == app()->getLocale() ? 'block' : 'none' }};">
+                                <div class="row">
+                                    @foreach (['name' => __('messages.name'), 'description' => __('messages.description')] as $field => $label)
+                                        <div class="form-group col-md-{{ $field === 'name' ? '4' : '12' }}">
+                                            {{ html()->label($label . ($field === 'name' ? ' <span class="text-danger">*</span>' : ''), $field)->class('form-control-label language-label') }}
+                                            @php
+                                                $value =
+                                                    $language['id'] == 'en'
+                                                        ? ($servicedata
+                                                            ? $servicedata->translate($field, 'en')
+                                                            : '')
+                                                        : ($servicedata
+                                                            ? $servicedata->translate($field, $language['id'])
+                                                            : '');
+                                                $name =
+                                                    $language['id'] == 'en'
+                                                        ? $field
+                                                        : "translations[{$language['id']}][$field]";
+                                            @endphp
 
-                            @if($field === 'name')
-    {{ html()->text($name, $value)
-        ->placeholder($label)
-        ->class('form-control')
-        ->attribute('title', 'Please enter alphabetic characters and spaces only')
-        ->attribute('data-required', 'true') }}
-@elseif($field === 'description')
-    {{ html()->textarea($name, $value)
-        ->class('form-control textarea description-field')
-        ->attribute('maxlength', 1500)
-        ->rows(3)
-        ->placeholder($label)
-        ->attribute('data-lang', $language['id']) }}
+                                            @if ($field === 'name')
+                                                {{ html()->text($name, $value)->placeholder($label)->class('form-control')->attribute('title', 'Please enter alphabetic characters and spaces only')->attribute('data-required', 'true') }}
+                                            @elseif($field === 'description')
+                                                {{ html()->textarea($name, $value)->class('form-control textarea description-field')->attribute('maxlength', 1500)->rows(3)->placeholder($label)->attribute('data-lang', $language['id']) }}
 
-    <small class="text-muted">
-        <span class="char-count" id="char-count-{{ $language['id'] }}">{{ strlen($value ?? '') }}</span>/1500
-    </small>
-@endif
+                                                <small class="text-muted">
+                                                    <span class="char-count"
+                                                        id="char-count-{{ $language['id'] }}">{{ strlen($value ?? '') }}</span>/1500
+                                                </small>
+                                            @endif
 
-                                    <small class="help-block with-errors text-danger"></small>
-                                </div>
-                                @endforeach
-         
-                                <!-- Category Selection -->
-                                <div class="form-group col-md-4">
-                                    {{ html()->label(__('messages.select_name', ['select' => __('messages.category')]) . ' <span class="text-danger">*</span>', 'category_id')->class('form-control-label') }}
-                                    <select name="category_id"
-                                            id="category_id_{{ $language['id'] }}"
-                                            class="form-select select2js-category"
-                                            data-select2-type="category"
+                                            <small class="help-block with-errors text-danger"></small>
+                                        </div>
+                                    @endforeach
+
+                                    <!-- Category Selection -->
+                                    <div class="form-group col-md-4">
+                                        {{ html()->label(__('messages.select_name', ['select' => __('messages.category')]) . ' <span class="text-danger">*</span>', 'category_id')->class('form-control-label') }}
+                                        <select name="category_id" id="category_id_{{ $language['id'] }}"
+                                            class="form-select select2js-category" data-select2-type="category"
                                             data-selected-id="{{ $servicedata->category_id ?? '' }}"
                                             data-language-id="{{ $language['id'] }}"
                                             data-ajax--url="{{ route('ajax-list', ['type' => 'category', 'language_id' => $language['id']]) }}"
@@ -114,18 +113,6 @@
                             </div> -->
 
                             @if (auth()->user()->hasAnyRole(['admin', 'demo_admin']))
-                                <div class="form-group col-md-4">
-                                    {{ html()->label(__('messages.select_name', ['select' => __('messages.provider')]) . ' <span class="text-danger">*</span>', 'name')->class('form-control-label') }}
-                                    <br />
-                                    {{ html()->select(
-                                            'provider_id',
-                                            [optional($servicedata->providers)->id => optional($servicedata->providers)->display_name],
-                                            optional($servicedata->providers)->id,
-                                        )->class('select2js form-group')->id('provider_id')->attribute('onchange', 'selectprovider(this)')->required()->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.provider')]))->attribute('data-ajax--url', route('ajax-list', ['type' => 'provider'])) }}
-                                </div>
-                            @endif
-                            @if (auth()->user()->hasRole('provider'))
-                                <input type="hidden" id="provider_id" value="{{ auth()->id() }}">
                             @endif
 
                             <!-- Zone Selection -->
@@ -150,7 +137,6 @@
                             <div class="form-group col-md-4" id="discount_div">
                                 {{ html()->label(__('messages.discount') . ' %', 'discount')->class('form-control-label') }}
                                 {{ html()->number('discount', null)->attributes(['min' => 0, 'max' => 99, 'step' => 'any'])->placeholder(__('messages.discount'))->class('form-control')->id('discount') }}
-
                                 <span id="discount-error" class="text-danger"></span>
                             </div>
 
@@ -195,13 +181,15 @@
                                 <div class="form-group">
                                     <div class="custom-control custom-switch">
                                         <!-- @php
-                                            $seoEnabled = !empty($servicedata->meta_title)
-                                                || !empty($servicedata->meta_description)
-                                                || !empty($servicedata->meta_keywords)
-                                                || !empty($servicedata->slug)
+                                            $seoEnabled =
+                                                !empty($servicedata->meta_title) ||
+                                                !empty($servicedata->meta_description) ||
+                                                !empty($servicedata->meta_keywords) ||
+                                                !empty($servicedata->slug);
                                         @endphp -->
                                         {{ html()->checkbox('seo_enabled', $servicedata->seo_enabled)->class('custom-control-input')->id('seo_enabled') }}
-                                        <label class="custom-control-label" for="seo_enabled">{{ __('messages.set_seo') }}</label>
+                                        <label class="custom-control-label"
+                                            for="seo_enabled">{{ __('messages.set_seo') }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -217,32 +205,39 @@
                                 <div class="form-group col-md-6 mb-3">
                                     {{ html()->label(__('messages.seo_image'), 'seo_image')->class('form-control-label language-label') }}
                                     @php
-                                        $seoImageUrl = (isset($servicedata->id) && getMediaFileExit($servicedata, 'seo_image')) ? $servicedata->getFirstMediaUrl('seo_image') : '';
+                                        $seoImageUrl =
+                                            isset($servicedata->id) && getMediaFileExit($servicedata, 'seo_image')
+                                                ? $servicedata->getFirstMediaUrl('seo_image')
+                                                : '';
                                         $seoImageHas = !empty($seoImageUrl) ? '1' : '0';
-                                    @endphp 
-                                    <input type="file" name="seo_image" class="form-control" accept=".jpg,.jpeg,.png" placeholder="{{ __('messages.choose_file', ['file' => __('messages.image')]) }}" onchange="previewSeoImage(event)" data-has-image="{{ $seoImageHas }}">
+                                    @endphp
+                                    <input type="file" name="seo_image" class="form-control" accept=".jpg,.jpeg,.png"
+                                        placeholder="{{ __('messages.choose_file', ['file' => __('messages.image')]) }}"
+                                        onchange="previewSeoImage(event)" data-has-image="{{ $seoImageHas }}">
                                     <small class="help-block with-errors text-danger"></small>
-                                    <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }}</small> 
+                                    <small
+                                        class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }}</small>
                                     <!-- @php
-                                        $seoImageUrl = (isset($servicedata->id) && getMediaFileExit($servicedata, 'seo_image')) ? $servicedata->getFirstMediaUrl('seo_image') : '';
+                                        $seoImageUrl =
+                                            isset($servicedata->id) && getMediaFileExit($servicedata, 'seo_image')
+                                                ? $servicedata->getFirstMediaUrl('seo_image')
+                                                : '';
                                     @endphp -->
-                                    <img id="seo_image_preview" src="{{ $seoImageUrl }}" alt="SEO Image Preview" style="max-width: 100px; margin-top: 10px; @if(empty($seoImageUrl)) display: none; @endif" />
+                                    <img id="seo_image_preview" src="{{ $seoImageUrl }}" alt="SEO Image Preview"
+                                        style="max-width: 100px; margin-top: 10px; @if (empty($seoImageUrl)) display: none; @endif" />
                                 </div>
                                 <div class="form-group col-md-6 mb-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         {{ html()->label(__('messages.meta_title'), 'meta_title')->class('form-control-label language-label') }}
                                         <span class="text-muted" style="font-size: 12px;">
-                                            <span id="meta-title-count">{{ strlen($servicedata->meta_title ?? '') }}</span>/100
+                                            <span
+                                                id="meta-title-count">{{ strlen($servicedata->meta_title ?? '') }}</span>/100
                                         </span>
                                     </div>
                                     @php
                                         $metaTitleValue = isset($servicedata->id) ? $servicedata->meta_title : '';
                                     @endphp
-                                    {{ html()->text('meta_title', $metaTitleValue)
-                                        ->placeholder(__('messages.enter_meta_title'))
-                                        ->class('form-control')
-                                        ->attribute('maxlength', 100)
-                                        ->attribute('id', 'meta_title') }}
+                                    {{ html()->text('meta_title', $metaTitleValue)->placeholder(__('messages.enter_meta_title'))->class('form-control')->attribute('maxlength', 100)->attribute('id', 'meta_title') }}
                                     <small class="help-block with-errors text-danger"></small>
                                 </div>
                             </div>
@@ -253,11 +248,18 @@
                                         {{ html()->label(__('messages.meta_keywords'), 'meta_keywords')->class('form-control-label language-label') }}
                                     </div>
                                     @php
-                                        $metaKeywordsValue = isset($servicedata->id) ? (is_array($servicedata->meta_keywords) ? implode(',', $servicedata->meta_keywords) : $servicedata->meta_keywords) : '';
+                                        $metaKeywordsValue = isset($servicedata->id)
+                                            ? (is_array($servicedata->meta_keywords)
+                                                ? implode(',', $servicedata->meta_keywords)
+                                                : $servicedata->meta_keywords)
+                                            : '';
                                     @endphp
-                                    <input id="meta_keywords" name="meta_keywords" value="{{ $metaKeywordsValue }}" placeholder="{{ __('messages.type_a_keyword_and_press_enter') }}" class="w-100" />
+                                    <input id="meta_keywords" name="meta_keywords" value="{{ $metaKeywordsValue }}"
+                                        placeholder="{{ __('messages.type_a_keyword_and_press_enter') }}"
+                                        class="w-100" />
                                     <br />
-                                    <small class="text-muted">{{ __('messages.type_a_keyword_and_press_enter') }}</small>
+                                    <small
+                                        class="text-muted">{{ __('messages.type_a_keyword_and_press_enter') }}</small>
                                 </div>
                                 <div class="col-md-6 d-none"></div>
                             </div>
@@ -266,19 +268,14 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     {{ html()->label(__('messages.meta_description'), 'meta_description')->class('form-control-label language-label') }}
                                     <span class="text-muted" style="font-size: 12px;">
-                                        <span id="meta-desc-count">{{ strlen($servicedata->meta_description ?? '') }}</span>/200
+                                        <span
+                                            id="meta-desc-count">{{ strlen($servicedata->meta_description ?? '') }}</span>/200
                                     </span>
                                 </div>
                                 @php
                                     $metaDescValue = isset($servicedata->id) ? $servicedata->meta_description : '';
                                 @endphp
-                                {{ html()->textarea('meta_description', $metaDescValue)
-                                    ->placeholder(__('messages.enter_meta_description'))
-                                    ->class('form-control flex-grow-1')
-                                    ->style('min-height: 120px; resize: vertical;')
-                                    ->rows(4)
-                                    ->attribute('maxlength', 200)
-                                    ->attribute('id', 'meta_description') }}
+                                {{ html()->textarea('meta_description', $metaDescValue)->placeholder(__('messages.enter_meta_description'))->class('form-control flex-grow-1')->style('min-height: 120px; resize: vertical;')->rows(4)->attribute('maxlength', 200)->attribute('id', 'meta_description') }}
                                 <small class="help-block with-errors text-danger"></small>
                             </div>
                         </div>
@@ -339,7 +336,6 @@
                             @endif
                         </div>
 
-
                         @if (auth()->user()->hasAnyRole(['admin', 'demo_admin']) &&
                                 isset($servicedata) &&
                                 $servicedata->is_service_request == 1 &&
@@ -378,6 +374,7 @@
                     previewElement.style.display = 'none';
                 }
             }
+
             function previewSeoImage(event) {
                 const preview = document.getElementById('seo_image_preview');
                 const file = event.target.files[0];
@@ -395,41 +392,20 @@
                     renderedDataTable = $('#datatable').DataTable();
                 }
 
-                var initialProviderId = document.getElementById('provider_id').value;
-                selectprovider({
-                    value: initialProviderId
+                const textareas = document.querySelectorAll('.description-field');
+
+                textareas.forEach(function(textarea) {
+                    textarea.addEventListener('input', function() {
+                        const langId = textarea.getAttribute('data-lang');
+                        const countSpan = document.getElementById('char-count-' + langId);
+
+                        if (countSpan) {
+                            countSpan.textContent = textarea.value.length;
+                        }
+                    });
                 });
 
-                  const textareas = document.querySelectorAll('.description-field');
 
-        textareas.forEach(function (textarea) {
-            textarea.addEventListener('input', function () {
-                const langId = textarea.getAttribute('data-lang');
-                const countSpan = document.getElementById('char-count-' + langId);
-
-                if (countSpan) {
-                    countSpan.textContent = textarea.value.length;
-                }
-            });
-        });
-
-
-                 const addLink = document.getElementById('add_provider_address_link');
-    
-    if (addLink) {
-        addLink.addEventListener('click', function(event) {
-            event.preventDefault();
-
-            const providerId = document.getElementById('provider_id').value;
-            let providerAddressCreateUrl = "{{ route('provideraddress.create', ['provideraddress' => '']) }}";
-            
-            providerAddressCreateUrl = providerAddressCreateUrl.replace('provideraddress=',
-                'provideraddress=' + providerId);
-
-            window.location.href = providerAddressCreateUrl;
-        });
-    }
-                 
             });
 
             function updateServiceStatus(serviceId, status, reason = '') {
@@ -537,50 +513,6 @@
 
             }
 
-            function selectprovider(selectElement) {
-                var providerId = selectElement.value;
-                var zoneDropdown = $('#service_zones');
-
-                if (providerId) {
-                    // Load zones for the selected provider
-                    $.ajax({
-                        url: "{{ route('ajax-list', ['type' => 'zone']) }}",
-                        data: {
-                            provider_id: providerId
-                        },
-                        success: function(result) {
-                            // Clear existing options
-                            zoneDropdown.empty();
-
-                            // Add new options from the response
-                            if (result.results && result.results.length > 0) {
-                                $.each(result.results, function(index, item) {
-                                    var option = new Option(item.text, item.id, false, false);
-                                    zoneDropdown.append(option);
-                                });
-                            }
-
-                            // Initialize Select2
-                            zoneDropdown.select2({
-                                width: '100%',
-                                placeholder: "{{ trans('messages.select_name', ['select' => trans('messages.zone')]) }}",
-                                allowClear: true
-                            });
-
-                            // If we have selected zones from editing, set them
-                            @if (isset($selectedZones) && !empty($selectedZones))
-                                var selectedZones = @json($selectedZones);
-                                if (selectedZones && selectedZones.length > 0) {
-                                    zoneDropdown.val(selectedZones).trigger('change');
-                                }
-                            @endif
-                        }
-                    });
-                } else {
-                    zoneDropdown.empty().trigger('change');
-                }
-            }
-
             // Initialize Select2 for service zones on page load
             $(document).ready(function() {
                 // Initialize the zone dropdown
@@ -589,29 +521,43 @@
                     placeholder: "{{ trans('messages.select_name', ['select' => trans('messages.zone')]) }}"
                 });
 
-                // Initialize provider dropdown with Select2
-                $('#provider_id').select2({
-                    width: '100%',
-                    placeholder: "{{ trans('messages.select_name', ['select' => trans('messages.provider')]) }}",
-                    allowClear: true
+                // Load all zones
+                $.ajax({
+                    url: "{{ route('ajax-list', ['type' => 'zone']) }}",
+                    success: function(result) {
+                        var zoneDropdown = $('#service_zones');
+                        zoneDropdown.empty();
+
+                        // Add new options from the response
+                        if (result.results && result.results.length > 0) {
+                            $.each(result.results, function(index, item) {
+                                var option = new Option(item.text, item.id, false, false);
+                                zoneDropdown.append(option);
+                            });
+                        }
+
+                        // Re-initialize Select2 after loading options
+                        zoneDropdown.select2({
+                            width: '100%',
+                            placeholder: "{{ trans('messages.select_name', ['select' => trans('messages.zone')]) }}",
+                            allowClear: true
+                        });
+
+                        // If we have selected zones from editing, set them
+                        @if (isset($selectedZones) && !empty($selectedZones))
+                            var selectedZones = @json($selectedZones);
+                            if (selectedZones && selectedZones.length > 0) {
+                                zoneDropdown.val(selectedZones).trigger('change');
+                            }
+                        @endif
+                    }
                 });
-
-                // Always call selectprovider on load
-                var initialProviderId = $('#provider_id').val();
-                if (initialProviderId) {
-                    selectprovider({
-                        value: initialProviderId
-                    });
-                }
-            });
-
-            discountInput.addEventListener('input', function() {
                 var discountValue = parseFloat(discountInput.value);
-                if (isNaN(discountValue) || discountValue < 0 || discountValue > 99) {
-                    discountError.textContent = "{{ __('Discount value should be between 0 to 99') }}";
-                } else {
-                    discountError.textContent = "";
-                }
+                // if (isNaN(discountValue) || discountValue < 0 || discountValue > 99) {
+                //     discountError.textContent = "{{ __('Discount value should be between 0 to 99') }}";
+                // } else {
+                //     discountError.textContent = "";
+                // }
             });
 
             var isEnableAdvancePayment = $("input[name='is_enable_advance_payment']").prop('checked');
@@ -653,24 +599,15 @@
             (function($) {
                 "use strict";
                 $(document).ready(function() {
-                    var provider_id = "{{ isset($servicedata->provider_id) ? $servicedata->provider_id : '' }}";
-                    var provider_address_id = "{{ isset($data) ? $data : [] }}";
-
                     var category_id = "{{ isset($servicedata->category_id) ? $servicedata->category_id : '' }}";
                     var subcategory_id =
                         "{{ isset($servicedata->subcategory_id) ? $servicedata->subcategory_id : '' }}";
 
                     var price_type = "{{ isset($servicedata->type) ? $servicedata->type : '' }}";
 
-                    providerAddress(provider_id, provider_address_id)
                     getSubCategory(category_id, subcategory_id)
                     priceformat(price_type)
 
-                    $(document).on('change', '#provider_id', function() {
-                        var provider_id = $(this).val();
-                        $('#provider_address_id').empty();
-                        providerAddress(provider_id, provider_address_id);
-                    })
                     $(document).on('change', '#category_id', function() {
                         var category_id = $(this).val();
                         $('#subcategory_id').empty();
@@ -718,26 +655,6 @@
                         })
                     })
                 })
-
-                function providerAddress(provider_id, provider_address_id = "") {
-                    var provider_address_route =
-                        "{{ route('ajax-list', ['type' => 'provider_address', 'provider_id' => '']) }}" + provider_id;
-                    provider_address_route = provider_address_route.replace('amp;', '');
-
-                    $.ajax({
-                        url: provider_address_route,
-                        success: function(result) {
-                            $('#provider_address_id').select2({
-                                width: '100%',
-                                placeholder: "{{ trans('messages.select_name', ['select' => trans('messages.provider_address')]) }}",
-                                data: result.results
-                            });
-                            if (provider_address_id != "") {
-                                $('#provider_address_id').val(provider_address_id.split(',')).trigger('change');
-                            }
-                        }
-                    });
-                }
 
                 function getSubCategory(category_id, subcategory_id = "") {
                     var get_subcategory_list =
@@ -956,173 +873,178 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
         <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var input = document.querySelector('input[name=meta_keywords]');
-            if (input) {
-                new Tagify(input, {
-                    delimiters: ",",
-                    whitelist: [],
-                    dropdown: { enabled: 0 },
-                    originalInputValueFormat: valuesArr => JSON.stringify(valuesArr.map(item => item.value))
-                });
-            }
-
-            
-
-            // SEO Enable/Disable Switch functionality
-            var seoEnabledSwitch = document.getElementById('seo_enabled');
-            var seoFieldsSection = document.getElementById('seo_fields_section');
-            var metaTitle = document.getElementById('meta_title');
-            var metaTitleCount = document.getElementById('meta-title-count');
-            var metaDesc = document.getElementById('meta_description');
-            var metaDescCount = document.getElementById('meta-desc-count');
-            var metaKeywords = document.getElementById('meta_keywords');
-            var seoImage = document.querySelector('input[name="seo_image"]');
-
-            function updateMetaTitleCount() {
-                if (metaTitle && metaTitleCount) {
-                    metaTitleCount.textContent = metaTitle.value.length;
+            document.addEventListener('DOMContentLoaded', function() {
+                var input = document.querySelector('input[name=meta_keywords]');
+                if (input) {
+                    new Tagify(input, {
+                        delimiters: ",",
+                        whitelist: [],
+                        dropdown: {
+                            enabled: 0
+                        },
+                        originalInputValueFormat: valuesArr => JSON.stringify(valuesArr.map(item => item.value))
+                    });
                 }
-            }
-            function updateMetaDescCount() {
-                if (metaDesc && metaDescCount) {
-                    metaDescCount.textContent = metaDesc.value.length;
-                }
-            }
 
-            // Attach listeners
-            if (metaTitle) {
-                metaTitle.addEventListener('input', updateMetaTitleCount);
-                updateMetaTitleCount();
-            }
-            if (metaDesc) {
-                metaDesc.addEventListener('input', updateMetaDescCount);
-                updateMetaDescCount();
-            }
 
-            function toggleSeoFields() {
-                if (seoEnabledSwitch.checked) {
-                    seoFieldsSection.style.display = 'block';
-                    // Do not restore old data, keep fields as is (empty if just toggled on)
-                } else {
-                    seoFieldsSection.style.display = 'none';
-                    // Clear SEO fields when disabling
-                    if (metaTitle) {
-                        metaTitle.value = '';
-                        if (metaTitleCount) metaTitleCount.textContent = '0';
+
+                // SEO Enable/Disable Switch functionality
+                var seoEnabledSwitch = document.getElementById('seo_enabled');
+                var seoFieldsSection = document.getElementById('seo_fields_section');
+                var metaTitle = document.getElementById('meta_title');
+                var metaTitleCount = document.getElementById('meta-title-count');
+                var metaDesc = document.getElementById('meta_description');
+                var metaDescCount = document.getElementById('meta-desc-count');
+                var metaKeywords = document.getElementById('meta_keywords');
+                var seoImage = document.querySelector('input[name="seo_image"]');
+
+                function updateMetaTitleCount() {
+                    if (metaTitle && metaTitleCount) {
+                        metaTitleCount.textContent = metaTitle.value.length;
                     }
-                    if (metaDesc) {
-                        metaDesc.value = '';
+                }
+
+                function updateMetaDescCount() {
+                    if (metaDesc && metaDescCount) {
+                        metaDescCount.textContent = metaDesc.value.length;
+                    }
+                }
+
+                // Attach listeners
+                if (metaTitle) {
+                    metaTitle.addEventListener('input', updateMetaTitleCount);
+                    updateMetaTitleCount();
+                }
+                if (metaDesc) {
+                    metaDesc.addEventListener('input', updateMetaDescCount);
+                    updateMetaDescCount();
+                }
+
+                function toggleSeoFields() {
+                    if (seoEnabledSwitch.checked) {
+                        seoFieldsSection.style.display = 'block';
+                        // Do not restore old data, keep fields as is (empty if just toggled on)
+                    } else {
+                        seoFieldsSection.style.display = 'none';
+                        // Clear SEO fields when disabling
+                        if (metaTitle) {
+                            metaTitle.value = '';
+                            if (metaTitleCount) metaTitleCount.textContent = '0';
+                        }
+                        if (metaDesc) {
+                            metaDesc.value = '';
+                            if (metaDescCount) metaDescCount.textContent = '0';
+                        }
+                        if (metaKeywords) {
+                            metaKeywords.value = '';
+                            if (metaKeywords.tagify) metaKeywords.tagify.removeAllTags();
+                        }
+                        if (seoImage) {
+                            seoImage.value = '';
+                            var seoImagePreview = document.getElementById('seo_image_preview');
+                            if (seoImagePreview) {
+                                seoImagePreview.src = '';
+                                seoImagePreview.style.display = 'none';
+                            }
+                        }
+                    }
+                    // Always update counts after toggling
+                    updateMetaTitleCount();
+                    updateMetaDescCount();
+                }
+
+                // Initial state: show/hide and populate fields based on backend data
+                if (seoEnabledSwitch) {
+                    if (seoEnabledSwitch.checked) {
+                        seoFieldsSection.style.display = 'block';
+                        // The Blade template will have already populated the fields with $servicedata values
+                    } else {
+                        seoFieldsSection.style.display = 'none';
+                        // Clear fields (in case of browser autofill)
+                        if (metaTitle) metaTitle.value = '';
+                        if (metaDesc) metaDesc.value = '';
+                        if (metaKeywords) {
+                            metaKeywords.value = '';
+                            if (metaKeywords.tagify) metaKeywords.tagify.removeAllTags();
+                        }
+                        if (seoImage) {
+                            seoImage.value = '';
+                            var seoImagePreview = document.getElementById('seo_image_preview');
+                            if (seoImagePreview) {
+                                seoImagePreview.src = '';
+                                seoImagePreview.style.display = 'none';
+                            }
+                        }
+                        if (metaTitleCount) metaTitleCount.textContent = '0';
                         if (metaDescCount) metaDescCount.textContent = '0';
                     }
-                    if (metaKeywords) {
-                        metaKeywords.value = '';
-                        if (metaKeywords.tagify) metaKeywords.tagify.removeAllTags();
-                    }
-                    if (seoImage) {
-                        seoImage.value = '';
-                        var seoImagePreview = document.getElementById('seo_image_preview');
-                        if (seoImagePreview) {
-                            seoImagePreview.src = '';
-                            seoImagePreview.style.display = 'none';
-                        }
-                    }
+                    // Add event listener
+                    seoEnabledSwitch.addEventListener('change', toggleSeoFields);
                 }
-                // Always update counts after toggling
-                updateMetaTitleCount();
-                updateMetaDescCount();
-            }
-
-            // Initial state: show/hide and populate fields based on backend data
-            if (seoEnabledSwitch) {
-                if (seoEnabledSwitch.checked) {
-                    seoFieldsSection.style.display = 'block';
-                    // The Blade template will have already populated the fields with $servicedata values
-                } else {
-                    seoFieldsSection.style.display = 'none';
-                    // Clear fields (in case of browser autofill)
-                    if (metaTitle) metaTitle.value = '';
-                    if (metaDesc) metaDesc.value = '';
-                    if (metaKeywords) {
-                        metaKeywords.value = '';
-                        if (metaKeywords.tagify) metaKeywords.tagify.removeAllTags();
-                    }
-                    if (seoImage) {
-                        seoImage.value = '';
-                        var seoImagePreview = document.getElementById('seo_image_preview');
-                        if (seoImagePreview) {
-                            seoImagePreview.src = '';
-                            seoImagePreview.style.display = 'none';
-                        }
-                    }
-                    if (metaTitleCount) metaTitleCount.textContent = '0';
-                    if (metaDescCount) metaDescCount.textContent = '0';
-                }
-                // Add event listener
-                seoEnabledSwitch.addEventListener('change', toggleSeoFields);
-            }
-        });
+            });
         </script>
         <script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-    // 10MB in bytes
-    const MAX_SIZE = 10 * 1024 * 1024;
+            document.addEventListener('DOMContentLoaded', function() {
+                // 10MB in bytes
+                const MAX_SIZE = 10 * 1024 * 1024;
 
-    // SEO Image validation (10MB limit)
-    const seoImageInput = document.querySelector('input[name="seo_image"]');
-    if (seoImageInput) {
-        seoImageInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const errorBlock = seoImageInput.parentElement.querySelector('.help-block.with-errors.text-danger');
-            if (file) {
-                if (file.size > MAX_SIZE) {
-                    event.target.value = '';
-                    if (errorBlock) {
-                        errorBlock.textContent = 'Image size must be less than 10MB.';
-                    } else {
-                        alert('Image size must be less than 10MB.');
-                    }
-                    var preview = document.getElementById('seo_image_preview');
-                    if (preview) preview.style.display = 'none';
-                    seoImageInput.setAttribute('data-has-image', '0');
-                } else {
-                    if (errorBlock) errorBlock.textContent = '';
+                // SEO Image validation (10MB limit)
+                const seoImageInput = document.querySelector('input[name="seo_image"]');
+                if (seoImageInput) {
+                    seoImageInput.addEventListener('change', function(event) {
+                        const file = event.target.files[0];
+                        const errorBlock = seoImageInput.parentElement.querySelector(
+                            '.help-block.with-errors.text-danger');
+                        if (file) {
+                            if (file.size > MAX_SIZE) {
+                                event.target.value = '';
+                                if (errorBlock) {
+                                    errorBlock.textContent = 'Image size must be less than 10MB.';
+                                } else {
+                                    alert('Image size must be less than 10MB.');
+                                }
+                                var preview = document.getElementById('seo_image_preview');
+                                if (preview) preview.style.display = 'none';
+                                seoImageInput.setAttribute('data-has-image', '0');
+                            } else {
+                                if (errorBlock) errorBlock.textContent = '';
+                            }
+                        } else {
+                            seoImageInput.setAttribute('data-has-image', seoImageInput.value ? '1' : '0');
+                            if (errorBlock) errorBlock.textContent = '';
+                        }
+                    });
                 }
-            } else {
-                seoImageInput.setAttribute('data-has-image', seoImageInput.value ? '1' : '0');
-                if (errorBlock) errorBlock.textContent = '';
-            }
-        });
-    }
 
-    // Service Attachment validation (10MB limit per file)
-    const serviceAttachmentInputs = document.querySelectorAll('input[name="service_attachment[]"]');
-    serviceAttachmentInputs.forEach(function(input) {
-        input.addEventListener('change', function(event) {
-            const files = event.target.files;
-            const errorBlock = input.parentElement.querySelector('.help-block.with-errors.text-danger');
-            let tooLarge = false;
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].size > MAX_SIZE) {
-                    tooLarge = true;
-                    break;
-                }
-            }
-            if (tooLarge) {
-                event.target.value = '';
-                if (errorBlock) {
-                    errorBlock.textContent = 'Each image must be less than 10MB.';
-                } else {
-                    alert('Each image must be less than 10MB.');
-                }
-                var preview = document.getElementById('service_attachment_preview');
-                if (preview) preview.style.display = 'none';
-            } else {
-                if (errorBlock) errorBlock.textContent = '';
-            }
-        });
-    });
-});
-</script>
-@endsection
+                // Service Attachment validation (10MB limit per file)
+                const serviceAttachmentInputs = document.querySelectorAll('input[name="service_attachment[]"]');
+                serviceAttachmentInputs.forEach(function(input) {
+                    input.addEventListener('change', function(event) {
+                        const files = event.target.files;
+                        const errorBlock = input.parentElement.querySelector(
+                            '.help-block.with-errors.text-danger');
+                        let tooLarge = false;
+                        for (let i = 0; i < files.length; i++) {
+                            if (files[i].size > MAX_SIZE) {
+                                tooLarge = true;
+                                break;
+                            }
+                        }
+                        if (tooLarge) {
+                            event.target.value = '';
+                            if (errorBlock) {
+                                errorBlock.textContent = 'Each image must be less than 10MB.';
+                            } else {
+                                alert('Each image must be less than 10MB.');
+                            }
+                            var preview = document.getElementById('service_attachment_preview');
+                            if (preview) preview.style.display = 'none';
+                        } else {
+                            if (errorBlock) errorBlock.textContent = '';
+                        }
+                    });
+                });
+            });
+        </script>
+    @endsection
 </x-master-layout>

@@ -135,19 +135,20 @@
                         name: 'name',
                         title: "{{ __('messages.name') }}"
                     },
-                    @if ($postrequestid)
-                        {
-                            data: 'provider_id',
-                            name: 'provider_id',
-                            title: "{{ __('messages.user') }}"
-                        },
-                    @else
-                        {
-                            data: 'provider_id',
-                            name: 'provider_id',
-                            title: "{{ __('messages.provider') }}"
-                        },
-                    @endif {
+                    // @if ($postrequestid)
+                    //     {
+                    //         data: 'provider_id',
+                    //         name: 'provider_id',
+                    //         title: "{{ __('messages.user') }}"
+                    //     },
+                    // @else
+                    //     {
+                    //         data: 'provider_id',
+                    //         name: 'provider_id',
+                    //         title: "{{ __('messages.provider') }}"
+                    //     },
+                    // @endif 
+                    {
                         data: 'category_id',
                         name: 'category_id',
                         title: "{{ __('messages.category') }}"
