@@ -33,7 +33,6 @@ class ServiceController extends Controller
     use ZoneTrait;
     public function getServiceList(Request $request)
     {
-
         $headerValue = $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
         $lat = $request->latitude ?? session()->get('user_lat', null);
         $lng = $request->longitude ?? session()->get('user_lng', null);
@@ -588,5 +587,137 @@ class ServiceController extends Controller
         $service->save();
 
         return response()->json(['message' => 'Service updated successfully'], 200);
+    }
+
+    public function getProviderServiceList(Request $request)
+    {
+        $provider = auth()->user();
+        if (!$provider || !($provider->hasRole('provider') || $provider->user_type == 'provider')) {
+            return comman_message_response(__('messages.not_authorized'), 401);
+        }
+
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $lat = $request->latitude ?? session()->get('user_lat', null);
+        $lng = $request->longitude ?? session()->get('user_lng', null);
+
+        $service = Service::where('service_type', 'service')
+                          ->with(['providers', 'category', 'serviceRating', 'translations'])
+                          ->orderBy('created_at', 'desc');
+
+        $category = Category::onlyTrashed()->get();
+        $category = $category->pluck('id');
+        $service = $service->whereNotIn('category_id', $category);
+
+        $providerCategories = $provider->categories()->pluck('categories.id')->toArray();
+        $providerZones = $provider->zones()->pluck('service_zones.id')->toArray();
+
+        $service = $service->whereIn('category_id', $providerCategories)
+                           ->whereHas('zones', function ($q) use ($providerZones) {
+                               $q->whereIn('service_zones.id', $providerZones);
+                           });
+
+        if ($request->has('request_status')) {
+            if ($request->request_status == 'reject') {
+                $service->where('service_request_status', "reject");
+            } elseif ($request->request_status == 'approve') {
+                $service->where('service_request_status', "approve");
+            } else if ($request->request_status == 'pending') {
+                $service->where('service_request_status', "pending");
+            }
+        }
+
+        $service = $service->where('status', 1);
+
+        if ($request->has('category_id') && $request->category_id != 'null') {
+            $service->where('category_id', $request->category_id);
+        }
+        if ($request->has('subcategory_id') && $request->subcategory_id != '') {
+            $service->whereIn('subcategory_id', explode(',', $request->subcategory_id));
+        }
+        if ($request->has('is_featured')) {
+            $service->where('is_featured', $request->is_featured);
+        }
+        if ($request->has('is_discount')) {
+            $service->where('discount', '>', 0)->orderBy('discount', 'desc');
+        }
+        if ($request->has('is_rating') && $request->is_rating != '') {
+            $isRating = (int) $request->is_rating;
+            $service->whereHas('serviceRating', function ($q) use ($isRating) {
+                $q->select('service_id', \DB::raw('round(AVG(rating), 1) as total_rating'))
+                    ->groupBy('service_id')
+                    ->havingRaw('total_rating >= ? AND total_rating < ?', [$isRating, $isRating + 1]);
+                return $q;
+            });
+        }
+        if ($request->has('is_price_min') && $request->is_price_min != '' || $request->has('is_price_max') && $request->is_price_max != '') {
+            $service->whereBetween('price', [$request->is_price_min, $request->is_price_max]);
+        }
+        if ($request->has('city_id')) {
+            $service->whereHas('providers', function ($a) use ($request) {
+                $a->where('city_id', $request->city_id);
+            });
+        }
+
+        if ($lat && !empty($lat) && $lng && !empty($lng)) {
+            $serviceZone = ServiceZone::all();
+            if (count($serviceZone) > 0) {
+                try {
+                    $matchingZoneIds = $this->getMatchingZonesByLatLng($lat, $lng);
+                    $service->whereHas('serviceZoneMapping', function ($service) use ($matchingZoneIds) {
+                        $service->whereIn('zone_id', $matchingZoneIds);
+                    });
+                } catch (\Exception $e) {
+                    $service = $service;
+                }
+            } else {
+                $get_distance = getSettingKeyValue('site-setup', 'radious') ?? 50;
+                $get_unit = getSettingKeyValue('site-setup', 'distance_type') ?? 'km';
+                $locations = $service->locationService($lat, $lng, $get_distance, $get_unit);
+                $service_in_location = ProviderServiceAddressMapping::whereIn('provider_address_id', $locations)->get()->pluck('service_id');
+                $service->with('providerServiceAddress')->whereIn('id', $service_in_location);
+            }
+        }
+
+        if ($request->has('search')) {
+            $service->where('name', 'like', "%{$request->search}%");
+        }
+
+        $per_page = config('constant.PER_PAGE_LIMIT');
+        if ($request->has('per_page') && !empty($request->per_page)) {
+            if (is_numeric($request->per_page)) {
+                $per_page = $request->per_page;
+            }
+            if ($request->per_page === 'all') {
+                $per_page = $service->count();
+            }
+        }
+
+        $service = $service->paginate($per_page);
+        $items = ServiceResource::collection($service);
+
+        $userservices = null;
+        if ($request->customer_id != null) {
+            $user_service = Service::where('status', 1)->where('added_by', $request->customer_id)->get();
+            $userservices = ServiceResource::collection($user_service);
+        }
+
+        $response = [
+            'pagination' => [
+                'total_items' => $items->total(),
+                'per_page' => $items->perPage(),
+                'currentPage' => $items->currentPage(),
+                'totalPages' => $items->lastPage(),
+                'from' => $items->firstItem(),
+                'to' => $items->lastItem(),
+                'next_page' => $items->nextPageUrl(),
+                'previous_page' => $items->previousPageUrl(),
+            ],
+            'data' => $items,
+            'user_services' => $userservices,
+            'max' => $service->max('price'),
+            'min' => $service->min('price'),
+        ];
+
+        return comman_custom_response($response);
     }
 }

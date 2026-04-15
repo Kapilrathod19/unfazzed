@@ -1075,4 +1075,44 @@ class UserController extends Controller
             'locale' => $locale,
         ], 200);
     }
+
+    public function getProviderCategories(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $categories = $user->categories()->where('categories.status', 1)->get();
+        $items = \App\Http\Resources\API\CategoryResource::collection($categories);
+
+        $response = [
+            'data' => $items
+        ];
+
+        return comman_custom_response($response);
+    }
+
+    public function getProviderZones(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $zones = $user->zones()->select('service_zones.id', 'service_zones.name')->where('service_zones.status', 1)->get()->map(function ($zone) {
+            return [
+                'id' => (int)$zone->id,
+                'name' => $zone->name
+            ];
+        });
+
+        $response = [
+            'data' => $zones
+        ];
+
+        return comman_custom_response($response);
+    }
 }
