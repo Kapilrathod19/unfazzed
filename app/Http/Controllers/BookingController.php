@@ -479,11 +479,15 @@ class BookingController extends Controller
     $data = $request->all();
     $serviceZone = ServiceZone::all();
 
-    if (count($serviceZone) > 0) {
-        $data['zone_id'] = $data['booking_address_id'] ?? null;
-    }
+    // if (count($serviceZone) > 0) {
+    //     $data['zone_id'] = $data['booking_address_id'] ?? null;
+    // }
 
     $data['tax'] = null;
+
+    if (empty($data['customer_id'])) {
+        $data['customer_id'] = auth()->id() ?? null;
+    }
 
     if (empty($request->id)) {
         $data['status'] = !empty($data['status']) ? $data['status'] : 'pending';
@@ -500,9 +504,10 @@ class BookingController extends Controller
     }
 
     $service_data = Service::find($data['service_id']);
-    $data['provider_id'] = !empty($data['provider_id'])
-        ? $data['provider_id']
-        : ($service_data->provider_id ?? null);
+    // $data['provider_id'] = !empty($data['provider_id'])
+    //     ? $data['provider_id']
+    //     : ($service_data->provider_id ?? null);
+    $data['provider_id'] = null;
 
     if ($request->has('tax') && $request->tax != null) {
         $data['tax'] = json_encode($request->tax);
@@ -557,6 +562,34 @@ class BookingController extends Controller
     }
 
     // -------------------------------------------
+    // AUTO DETERMINE ZONE BY LOCATION
+    // -------------------------------------------
+    $effectiveLat = $bookingAddress ? $bookingAddress->latitude : ($request->latitude ?? null);
+    $effectiveLng = $bookingAddress ? $bookingAddress->longitude : ($request->longitude ?? null);
+
+    if (empty($data['zone_id']) && $effectiveLat && $effectiveLng) {
+        $allZones = \App\Models\ServiceZone::all();
+        foreach ($allZones as $zone) {
+            $polygon = is_string($zone->coordinates) ? json_decode($zone->coordinates, true) : $zone->coordinates;
+            if (is_array($polygon) && count($polygon) >= 3) {
+                $inside = false;
+                for ($i = 0, $j = count($polygon) - 1; $i < count($polygon); $j = $i++) {
+                    $xi = $polygon[$i]['lat'] ?? null; $yi = $polygon[$i]['lng'] ?? null;
+                    $xj = $polygon[$j]['lat'] ?? null; $yj = $polygon[$j]['lng'] ?? null;
+                    if ($xi !== null && $yi !== null && $xj !== null && $yj !== null && ($yj - $yi) != 0) {
+                        $intersect = (($yi > $effectiveLng) != ($yj > $effectiveLng))
+                            && ($effectiveLat < ($xi - $xj) * ($effectiveLng - $yi) / ($yj - $yi) + $xj);
+                        if ($intersect) $inside = !$inside;
+                    }
+                }
+                if ($inside) {
+                    $data['zone_id'] = $zone->id;
+                    break;
+                }
+            }
+        }
+    }
+    // -------------------------------------------
     // CREATE / UPDATE BOOKING SAFELY
     // -------------------------------------------
     try {
@@ -574,11 +607,32 @@ class BookingController extends Controller
         return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
     }
 
+    // Retrieve matched providers for notification broadcasting
+    $serviceId = $service_data->id;
+    $categoryId = $service_data->category_id ?? null;
+    $zoneIds = \App\Models\ServiceZoneMapping::where('service_id', $serviceId)->pluck('zone_id')->toArray();
+    $matchingProviderIds = \App\Models\User::query()
+    ->where('user_type', 'provider')
+    ->where('status', 1)
+    
+    // Provider supports this CATEGORY
+    ->whereHas('categories', function ($q) use ($categoryId) {
+        $q->where('category_id', $categoryId);
+    })
+
+    // Provider belongs to BOOKING ZONE
+    ->whereHas('providerZones', function ($q) use ($zoneIds) {
+        $q->whereIn('zone_id', $zoneIds);
+    })
+
+    ->pluck('id')
+    ->toArray();
     // Notification
     $this->sendNotification([
         'activity_type' => 'add_booking',
         'booking_id' => $result->id,
         'booking' => $result,
+        'provider_ids' => $matchingProviderIds
     ]);
 
     // -------------------------------------------
@@ -779,6 +833,47 @@ class BookingController extends Controller
         if ($data['status'] == 'cancelled') {
             $activity_type = 'cancel_booking';
         }
+
+        if (isset($data['status']) && ($data['status'] == 'cancelled' || $data['status'] == 'rejected')) {
+            if (auth()->check() && auth()->user()->user_type === 'provider' && $bookingdata->provider_id === auth()->id()) {
+                $data['status'] = 'pending';
+                $data['provider_id'] = null;
+                $bookingdata->provider_id = null;
+
+                if ($bookingdata->handymanAdded()->count() > 0) {
+                    $bookingdata->handymanAdded()->delete();
+                }
+
+                $service = $bookingdata->service;
+                if ($service) {
+                    $categoryId = $service->category_id;
+                    $zoneId = $bookingdata->zone_id;
+
+                    $matchingProviderIds = \App\Models\User::query()
+                        ->where('user_type', 'provider')
+                        ->where('status', 1)
+                        ->where('id', '!=', auth()->id())
+                        ->whereHas('categories', function ($q) use ($categoryId) {
+                            $q->where('category_id', $categoryId);
+                        })
+                        ->whereHas('providerZones', function ($q) use ($zoneId) {
+                            $q->where('zone_id', $zoneId);
+                        })
+                        ->pluck('id')
+                        ->toArray();
+
+                    if (!empty($matchingProviderIds)) {
+                        $this->sendNotification([
+                            'activity_type' => 'add_booking',
+                            'booking_id' => $bookingdata->id,
+                            'booking' => $bookingdata,
+                            'provider_ids' => $matchingProviderIds
+                        ]);
+                    }
+                }
+            }
+        }
+
         $data['reason'] = isset($data['reason']) ? $data['reason'] : null;
         $old_status = $bookingdata->status;
 

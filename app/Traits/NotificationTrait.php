@@ -23,7 +23,7 @@ trait NotificationTrait
         if (isset($data['booking'])) {
             $booking = $data['booking'];
             $id = $booking->id;
-            $providerId = [$booking->provider_id];
+            $providerId = isset($data['provider_ids']) ? $data['provider_ids'] : [$booking->provider_id];
             $userId = $booking->customer_id;
         } else if (isset($data['wallet'])) {
             $id = $data['wallet']->id;
@@ -58,7 +58,7 @@ trait NotificationTrait
 
         switch ($data['activity_type']) {
             case "add_booking":
-                $customer_name = $booking->customer->display_name;
+                $customer_name = isset($booking->customer) ? $booking->customer->display_name : 'Unknown';
 
                 $data['activity_message'] = __('messages.booking_added', ['name' => $customer_name]);
                 $data['activity_type'] = __('messages.add_booking');
@@ -852,7 +852,9 @@ trait NotificationTrait
 
                         $admin = \App\Models\User::role('admin')->first();
                         
-                        $notification_data['person_id'] = $admin->id;
+                        if ($admin) {
+                            $notification_data['person_id'] = $admin->id;
+                        }
 
 
                         if (isset($admin->email)) {
@@ -871,16 +873,19 @@ trait NotificationTrait
                             foreach ($providerId as $id) {
                                 $employee = \App\Models\User::find($id);
 
-                                $notification_data['person_id'] = $employee->id;
-                                
-                                if (isset($employee->email)) {
-                                    try {
-                                        $notification_data['user_type'] = $mailTo;
-                                        $employee->notify(new \App\Notifications\CommonNotification($notification_type, $notification_data));
-                                    } catch (\Exception $e) {
-                                        Log::error($e);
+                                if ($employee) {
+                                    $notification_data['person_id'] = $employee->id;
+
+                                    if (isset($employee->email)) {
+                                        try {
+                                            $notification_data['user_type'] = $mailTo;
+                                            $employee->notify(new \App\Notifications\CommonNotification($notification_type, $notification_data));
+                                        } catch (\Exception $e) {
+                                            Log::error($e);
+                                        }
                                     }
                                 }
+
                             }
                         }
                         break;

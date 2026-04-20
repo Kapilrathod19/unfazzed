@@ -319,10 +319,10 @@ class UserController extends Controller
         $type = isset($request['type']) ? $request['type'] : '';
         $status = isset($request['status']) ? $request['status'] : 1;
         $all = isset($request['is_user_list_all']) ? $request['is_user_list_all'] : null;
-
+        
         $user_list = User::orderBy('is_available', 'desc')
-            ->orderBy('id', 'desc')
-            ->where('user_type', $user_type);
+        ->orderBy('id', 'desc')
+        ->where('user_type', $user_type);
 
         if (!empty($status)) {
             $user_list = $user_list->where('status', $status);

@@ -315,6 +315,17 @@ class BookingController extends Controller
         $data['cancellation_charge_amount'] = isset($request->cancellation_charge_amount) ? $request->cancellation_charge_amount : 0;
 
         $bookingdata = Booking::find($id);
+
+        if (isset($data['status']) && $data['status'] === 'accept' && auth()->check() && auth()->user()->user_type === 'provider') {
+            if ($bookingdata->status !== 'pending' && !empty($bookingdata->provider_id) && $bookingdata->provider_id !== auth()->id()) {
+                $msg = __('This booking has already been accepted by another provider.');
+                return comman_message_response($msg, 400); 
+            }
+            if (empty($bookingdata->provider_id)) {
+                $data['provider_id'] = auth()->id();
+                $bookingdata->provider_id = auth()->id();
+            }
+        }
         $paymentdata = Payment::where('booking_id', $id)->first();
         $user_wallet = Wallet::where('user_id', $bookingdata->customer_id)->first();
         $wallet_amount = $user_wallet ? $user_wallet->amount : 0;
@@ -397,6 +408,47 @@ class BookingController extends Controller
             $activity_type = 'cancel_booking';
         }
 
+        if (isset($data['status']) && ($data['status'] == 'cancelled' || $data['status'] == 'rejected')) {
+            if (auth()->check() && auth()->user()->user_type === 'provider' && $bookingdata->provider_id === auth()->id()) {
+                $data['status'] = 'pending';
+                $data['provider_id'] = null;
+                $bookingdata->provider_id = null;
+
+                if ($bookingdata->handymanAdded()->count() > 0) {
+                    $bookingdata->handymanAdded()->delete();
+                }
+
+                $service = $bookingdata->service;
+                if ($service) {
+                    $categoryId = $service->category_id;
+                    $zoneId = $bookingdata->zone_id;
+
+                    $matchingProviderIds = \App\Models\User::query()
+                        ->where('user_type', 'provider')
+                        ->where('status', 1)
+                        ->where('id', '!=', auth()->id())
+                        ->whereHas('categories', function ($q) use ($categoryId) {
+                            $q->where('category_id', $categoryId);
+                        })
+                        ->whereHas('providerZones', function ($q) use ($zoneId) {
+                            $q->where('zone_id', $zoneId);
+                        })
+                        ->pluck('id')
+                        ->toArray();
+
+                    if (!empty($matchingProviderIds)) {
+                        $this->sendNotification([
+                            'activity_type' => 'add_booking',
+                            'booking_id' => $bookingdata->id,
+                            'booking' => $bookingdata,
+                            'provider_ids' => $matchingProviderIds
+                        ]);
+                    }
+                }
+            }
+        }
+
+
         if ($data['status'] == 'rejected') {
             if ($bookingdata->handymanAdded()->count() > 0) {
                 $assigned_handyman_ids = $bookingdata->handymanAdded()->pluck('handyman_id')->toArray();
@@ -411,7 +463,7 @@ class BookingController extends Controller
             }
         }
 
-        if (($data['status'] == 'rejected' || $data['status'] == 'cancelled') && $data['payment_status'] == 'advanced_paid') {
+        if (($data['status'] == 'rejected' || $data['status'] == 'cancelled') && isset($data['payment_status']) && $data['payment_status'] == 'advanced_paid') {
             $advance_paid_amount = $bookingdata->advance_paid_amount;
             $cancellation_charges = $data['cancellation_charge_amount'] ?? 0;
 
