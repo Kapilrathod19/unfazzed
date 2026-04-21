@@ -86,7 +86,7 @@ class BookingResource extends JsonResource
             'booking_package'       => new BookingPackageResource($this->bookingPackage),
             'advance_paid_amount'   => $this->advance_paid_amount == null ? 0:(double) $this->advance_paid_amount,
             'advance_payment_amount'=> optional($this->service)->advance_payment_amount == null ? 0:(bool) optional($this->service)->advance_payment_amount,
-
+            'otp'                   => (auth()->check() && auth()->user()->id == $this->customer_id) ? $this->otp : null,
         ];
     }
 

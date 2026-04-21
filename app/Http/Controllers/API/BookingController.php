@@ -313,8 +313,47 @@ class BookingController extends Controller
         $data['end_at'] = isset($request->end_at) ? date('Y-m-d H:i:s', strtotime($request->end_at)) : null;
         $data['cancellation_charge'] = isset($request->cancellation_charge) ? $request->cancellation_charge : 0;
         $data['cancellation_charge_amount'] = isset($request->cancellation_charge_amount) ? $request->cancellation_charge_amount : 0;
+        $data['payment_status'] = isset($request->payment_status) ? $request->payment_status : 'pending';
 
         $bookingdata = Booking::find($id);
+
+        if ($bookingdata == null) {
+            $message = __('messages.user_not_found');
+            return comman_message_response($message, 400);
+        }
+
+        // OTP Verification Logic
+        $user = auth()->user();
+        if ($user) {
+            // Verification 1: Arrived -> Start Work
+            if (isset($data['status']) && ($data['status'] == 'in_progress')) {
+                if ($bookingdata->status == 'arrived') {
+                    if (!isset($request->otp) || $request->otp != $bookingdata->otp) {
+                        return comman_message_response(__('Wrong OTP provided. Please ask the customer for the arrival code.'), 400);
+                    }
+                    $data['otp'] = null; // Clear OTP after use
+                }
+            }
+            // Verification 2: Pending Approval -> Completed
+            if (isset($data['status']) && $data['status'] == 'completed') {
+                if ($bookingdata->status == 'pending_approval') {
+                    if (!isset($request->otp) || $request->otp != $bookingdata->otp) {
+                        return comman_message_response(__('Wrong OTP provided. Please ask the customer for the completion code.'), 400);
+                    }
+                    $data['otp'] = null; // Clear OTP after use
+                } else if ($setting && isset($setting->otp_verification) && $setting->otp_verification) {
+                    if (!empty($bookingdata->otp) && (!isset($request->otp) || $request->otp != $bookingdata->otp)) {
+                         return comman_message_response(__('Order verification code is required. Please provide the OTP.'), 400);
+                     }
+                     $data['otp'] = null;
+                }
+            }
+        }
+
+        // OTP Generation Logic
+        if (isset($data['status']) && ($data['status'] == 'arrived' || $data['status'] == 'pending_approval')) {
+            $data['otp'] = (string)rand(1000, 9999);
+        }
 
         if (isset($data['status']) && $data['status'] === 'accept' && auth()->check() && auth()->user()->user_type === 'provider') {
             if ($bookingdata->status !== 'pending' && !empty($bookingdata->provider_id) && $bookingdata->provider_id !== auth()->id()) {
@@ -352,7 +391,7 @@ class BookingController extends Controller
         }
         if ($data['status'] === 'hold') {
             if ($bookingdata->start_at == null && $bookingdata->end_at == null) {
-                $duration_diff = $data['duration_diff'];
+                $duration_diff = isset($data['duration_diff']) ? $data['duration_diff'] : 0;
                 $data['duration_diff'] = $duration_diff;
             } else {
                 if ($bookingdata->status == $data['status']) {
@@ -365,9 +404,9 @@ class BookingController extends Controller
                 } else {
                     $duration_diff = $bookingdata->duration_diff;
                     if ($bookingdata->start_at != null && $bookingdata->end_at != null) {
-                        $new_diff = $data['duration_diff'];
+                        $new_diff = isset($data['duration_diff']) ? $data['duration_diff'] : 0;
                     } else {
-                        $new_diff = $data['duration_diff'];
+                        $new_diff = isset($data['duration_diff']) ? $data['duration_diff'] : 0;
                     }
                     $data['duration_diff'] = $duration_diff + $new_diff;
                     $bookingdata['duration_diff'] = $data['duration_diff'];
@@ -386,7 +425,7 @@ class BookingController extends Controller
         }
         if ($data['status'] === 'pending_approval') {
             $duration_diff = $bookingdata->duration_diff;
-            $new_diff = $data['duration_diff'];
+            $new_diff = isset($data['duration_diff']) ? $data['duration_diff'] : 0;
 
             $data['duration_diff'] = $duration_diff + $new_diff;
             $bookingdata['duration_diff'] = $data['duration_diff'];
@@ -839,7 +878,7 @@ class BookingController extends Controller
     {
         $bookingID = $request->input('booking_id');
 
-        $latestLiveLocation = Cache::remember('latest_live_location_' . $bookingID, 30, function () use ($bookingID) {
+        $latestLiveLocation = Cache::remember('latest_live_location_' . $bookingID, 2, function () use ($bookingID) {
             return LiveLocation::where('booking_id', $bookingID)
                 ->latest()
                 ->first();

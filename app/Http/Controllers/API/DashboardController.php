@@ -536,7 +536,7 @@ class DashboardController extends Controller
             'status'                        => true,
             'total_cash_in_hand'            => total_cash_in_hand(auth()->user()->id),
             'total_booking'                 => $booking->count(),
-            'upcomming_booking'             => $upcomming->count(),
+            'upcomming_booking_count'       => $upcomming->count(),
             'today_booking'                 => $today_booking->count(),
             'commission'                    => $commission,
             'handyman_reviews'              => $handyman_rating,

@@ -952,6 +952,7 @@ class BookingController extends Controller
 
     public function bookingAssigned(Request $request)
     {
+        $activity_type = '';
         $bookingdata = Booking::with('payment', 'handymanAdded')->find($request->id);
 
         $assigned_handyman_ids = [];
@@ -988,7 +989,7 @@ class BookingController extends Controller
                 ];
 
                 $remove_notification_id = removeArrayValue($assigned_handyman_ids, $handyman);
-                $bookingdata->handymanAdded()->insert($assign_to_handyman);
+                $bookingdata->handymanAdded()->create($assign_to_handyman);
             }
         }
 

@@ -44,7 +44,7 @@ class Booking extends Model
         'cancellation_charge',
         'cancellation_charge_amount',
         'zone_id',
-
+        'otp',
     ];
 
     protected $casts = [
@@ -122,35 +122,34 @@ class Booking extends Model
             return $query;
         }
 
-        if ($user->hasRole('provider')) {
-            return $query->where(function ($q) use ($user) {
-                // Bookings specifically assigned to this provider
-                $q->where('bookings.provider_id', $user->id)
-                    // OR bookings that are unassigned and match the provider's categories and zones
-                    ->orWhere(function ($subQ) use ($user) {
-                        $subQ->where('bookings.status', 'pending')
-                            ->whereNull('bookings.provider_id')
-                            // Match Category
-                            ->whereHas('service', function ($serviceQ) use ($user) {
-                                $serviceQ->whereIn('category_id', $user->categories()->pluck('category_user.category_id'));
-                            })
-                            // Match Zone 
-                            ->whereIn('bookings.zone_id', $user->providerZones()->pluck('provider_zone_mappings.zone_id'));
-                    });
-            });
-        }
+        return $query->where(function ($query) use ($user) {
+            // Role: PROVIDER
+            if ($user->hasRole('provider')) {
+                $query->orWhere(function ($q) use ($user) {
+                    $q->where('bookings.provider_id', $user->id)
+                        ->orWhere(function ($subQ) use ($user) {
+                            $subQ->where('bookings.status', 'pending')
+                                ->whereNull('bookings.provider_id')
+                                ->whereHas('service', function ($serviceQ) use ($user) {
+                                    $serviceQ->whereIn('category_id', $user->categories()->pluck('category_user.category_id'));
+                                })
+                                ->whereIn('bookings.zone_id', $user->providerZones()->pluck('provider_zone_mappings.zone_id'));
+                        });
+                });
+            }
 
-        if ($user->hasRole('user')) {
-            return $query->where('customer_id', $user->id);
-        }
+            // Role: HANDYMAN
+            if ($user->hasRole('handyman')) {
+                $query->orWhereHas('handymanAdded', function ($q) use ($user) {
+                    $q->where('handyman_id', $user->id);
+                });
+            }
 
-        if ($user->hasRole('handyman')) {
-            return $query->whereHas('handymanAdded', function ($q) use ($user) {
-                $q->where('handyman_id', $user->id);
-            });
-        }
-
-        return $query;
+            // Role: CUSTOMER/USER
+            if ($user->hasRole('user')) {
+                $query->orWhere('customer_id', $user->id);
+            }
+        });
     }
 
     public function categoryService()

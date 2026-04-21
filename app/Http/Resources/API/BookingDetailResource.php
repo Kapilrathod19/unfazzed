@@ -97,6 +97,7 @@ class BookingDetailResource extends JsonResource
             'cancellation_charge_amount' => $cacellationcharges,
             'refund_amount' => $advancepaid > 0 ?  $advancepaid - $cacellationcharges : 0,
             'refund_status' =>  $advancepaid > 0 ? 'completed'  : null,
+            'otp'                   => (auth()->check() && auth()->user()->id == $this->customer_id) ? $this->otp : null,
             // 'handyman'              => isset($this->handymanAdded) ? $this->handymanAdded : [],
             // 'handyman_image'        => getSingleMedia($this->handyman, 'profile_image', null),
         ];
