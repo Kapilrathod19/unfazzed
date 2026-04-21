@@ -19,6 +19,7 @@ use App\Models\ServiceZone;
 use Illuminate\Support\Facades\DB;
 use App\Models\ProviderZoneMapping;
 use App\Models\ServiceOption;
+use App\Models\ServiceHowItDone;
 use App\Models\ServiceZoneMapping;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -542,7 +543,8 @@ class ServiceController extends Controller
                 'subcategory',
                 'providers',
                 'providerServiceAddress',
-                'zones'
+                'zones',
+                'serviceHowItDone'
             ])->find($id);
         }
 
@@ -605,11 +607,13 @@ class ServiceController extends Controller
         $globalSeoSetting = \App\Models\SeoSetting::first();
         
         $serviceOptions = [];
+        $serviceHowItDone = [];
         if ($servicedata && $servicedata->id) {
             $serviceOptions = $servicedata->serviceOptions()->get();
+            $serviceHowItDone = $servicedata->serviceHowItDone()->get();
         }
 
-        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting', 'serviceOptions'));
+        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting', 'serviceOptions', 'serviceHowItDone'));
     }
 
     /**
@@ -859,6 +863,73 @@ class ServiceController extends Controller
                     Storage::disk('public')->delete($removedOption->image);
                 }
                 $removedOption->forceDelete();
+            }
+        }
+
+        // Handle How It's Done steps
+        $howItDoneData = $request->input('how_it_done', []);
+        if (is_array($howItDoneData)) {
+            $submittedStepIds = [];
+            $stepFiles = $request->file('how_it_done') ?: [];
+
+            foreach ($howItDoneData as $index => $stepData) {
+                if (empty($stepData['title'])) {
+                    continue;
+                }
+
+                $howItDone = null;
+                if (!empty($stepData['id'])) {
+                    $howItDone = ServiceHowItDone::where('service_id', $result->id)
+                        ->where('id', $stepData['id'])
+                        ->first();
+                }
+
+                if (!$howItDone) {
+                    $howItDone = new ServiceHowItDone();
+                    $howItDone->service_id = $result->id;
+                }
+
+                $howItDone->title = $stepData['title'];
+
+                $imageFile = data_get($stepFiles, $index . '.image');
+                if ($imageFile) {
+                    if ($howItDone->image && Storage::disk('public')->exists($howItDone->image)) {
+                        Storage::disk('public')->delete($howItDone->image);
+                    }
+                    $howItDone->image = $imageFile->store('service_how_it_done', 'public');
+                }
+
+                $howItDone->save();
+                $submittedStepIds[] = $howItDone->id;
+            }
+
+            if (!empty($submittedStepIds)) {
+                $removedSteps = ServiceHowItDone::where('service_id', $result->id)
+                    ->whereNotIn('id', $submittedStepIds)
+                    ->get();
+
+                foreach ($removedSteps as $removedStep) {
+                    if ($removedStep->image && Storage::disk('public')->exists($removedStep->image)) {
+                        Storage::disk('public')->delete($removedStep->image);
+                    }
+                    $removedStep->forceDelete();
+                }
+            } else {
+                $removedSteps = ServiceHowItDone::where('service_id', $result->id)->get();
+                foreach ($removedSteps as $removedStep) {
+                    if ($removedStep->image && Storage::disk('public')->exists($removedStep->image)) {
+                        Storage::disk('public')->delete($removedStep->image);
+                    }
+                    $removedStep->forceDelete();
+                }
+            }
+        } else {
+            $removedSteps = ServiceHowItDone::where('service_id', $result->id)->get();
+            foreach ($removedSteps as $removedStep) {
+                if ($removedStep->image && Storage::disk('public')->exists($removedStep->image)) {
+                    Storage::disk('public')->delete($removedStep->image);
+                }
+                $removedStep->forceDelete();
             }
         }
         

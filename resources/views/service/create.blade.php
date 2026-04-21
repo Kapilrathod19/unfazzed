@@ -413,6 +413,71 @@
                             </div>
                         </div>
 
+                        @php
+                            $oldHowItDone = old('how_it_done', []);
+                            $howItDoneRows = !empty($oldHowItDone) ? $oldHowItDone : (!empty($serviceHowItDone) ? $serviceHowItDone : []);
+                        @endphp
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="fw-bold mb-3">{{ __('messages.how_it_done') }}</h5>
+                            </div>
+                            <div class="col-12">
+                                <div id="how-it-done-container">
+                                    @if (!empty($howItDoneRows))
+                                        @foreach ($howItDoneRows as $index => $step)
+                                            @php
+                                                $stepId = data_get($step, 'id');
+                                                $stepTitle = data_get($step, 'title');
+                                                $stepImage = data_get($step, 'image');
+                                            @endphp
+                                            <div class="how-it-done-row row mb-3 p-3 border rounded" data-index="{{ $index }}">
+                                                <input type="hidden" name="how_it_done[{{ $index }}][id]" value="{{ $stepId }}">
+                                                <div class="form-group col-md-7">
+                                                    {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', "how_it_done[{$index}][title]")->class('form-control-label') }}
+                                                    {{ html()->text("how_it_done[{$index}][title]", $stepTitle)->placeholder(__('messages.description'))->class('form-control step-title')->required() }}
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    {{ html()->label(__('messages.image') . ' (Optional)', "how_it_done[{$index}][image]")->class('form-control-label') }}
+                                                    <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*">
+                                                    @if (!empty($stepImage))
+                                                        <div class="mt-2">
+                                                            <img src="{{ asset('storage/'.$stepImage) }}"
+                                                                alt="Step Image"
+                                                                style="max-width:80px;max-height:80px;">
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="form-group col-md-1 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-danger remove-step w-100">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="how-it-done-row row mb-3 p-3 border rounded" data-index="0">
+                                            <div class="form-group col-md-7">
+                                                {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', 'how_it_done[0][title]')->class('form-control-label') }}
+                                                {{ html()->text('how_it_done[0][title]', '')->placeholder(__('messages.description'))->class('form-control step-title')->required() }}
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                {{ html()->label(__('messages.image') . ' (Optional)', 'how_it_done[0][image]')->class('form-control-label') }}
+                                                <input type="file" name="how_it_done[0][image]" class="form-control step-image" accept="image/*">
+                                            </div>
+                                            <div class="form-group col-md-1 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-danger remove-step w-100" style="display:none;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success add-step mt-2">
+                                    <i class="fa fa-plus"></i> {{ __('messages.add') }}
+                                </button>
+                            </div>
+                        </div>
+
                         @if (auth()->user()->hasAnyRole(['admin', 'demo_admin']) &&
                                 isset($servicedata) &&
                                 $servicedata->is_service_request == 1 &&
@@ -1121,6 +1186,79 @@
                         }
                     });
                 });
+
+                // How It's Done rows
+                const howItDoneContainer = document.getElementById('how-it-done-container');
+                let howItDoneIndex = howItDoneContainer ? howItDoneContainer.querySelectorAll('.how-it-done-row').length : 0;
+                const stepLabelDescription = "{{ __('messages.description') }}";
+                const stepLabelImage = "{{ __('messages.image') }}";
+
+                function updateHowItDoneDeleteButtons() {
+                    const rows = howItDoneContainer.querySelectorAll('.how-it-done-row');
+                    rows.forEach(function(row) {
+                        const button = row.querySelector('.remove-step');
+                        if (button) {
+                            button.style.display = rows.length > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                function createHowItDoneRow(index, step = {}) {
+                    const row = document.createElement('div');
+                    row.className = 'how-it-done-row row mb-3 p-3 border rounded';
+                    row.dataset.index = index;
+                    const titleValue = step.title ? step.title : '';
+                    const idValue = step.id ? step.id : '';
+                    const imageUrl = step.image ? step.image : '';
+
+                    row.innerHTML = `
+                        <input type="hidden" name="how_it_done[${index}][id]" value="${idValue}">
+                        <div class="form-group col-md-7">
+                            <label class="form-control-label" for="how_it_done[${index}][title]">${stepLabelDescription} <span class="text-danger">*</span></label>
+                            <input type="text" name="how_it_done[${index}][title]" class="form-control step-title" value="${titleValue}" placeholder="${stepLabelDescription}" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="form-control-label" for="how_it_done[${index}][image]">${stepLabelImage} (Optional)</label>
+                            <input type="file" name="how_it_done[${index}][image]" class="form-control step-image" accept="image/*">
+                            ${imageUrl ? `<div class="mt-2"><img src="${imageUrl.startsWith('http') ? imageUrl : '/storage/' + imageUrl}" alt="Step Image" style="max-width: 80px; max-height: 80px;"></div>` : ''}
+                        </div>
+                        <div class="form-group col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-sm btn-danger remove-step w-100">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    return row;
+                }
+
+                const addStepButton = document.querySelector('.add-step');
+                if (addStepButton) {
+                    addStepButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const row = createHowItDoneRow(howItDoneIndex, {});
+                        howItDoneContainer.appendChild(row);
+                        howItDoneIndex++;
+                        updateHowItDoneDeleteButtons();
+                    });
+                }
+
+                if (howItDoneContainer) {
+                    howItDoneContainer.addEventListener('click', function(event) {
+                        const removeButton = event.target.closest('.remove-step');
+                        if (!removeButton) {
+                            return;
+                        }
+                        event.preventDefault();
+                        const row = removeButton.closest('.how-it-done-row');
+                        if (row) {
+                            row.remove();
+                            updateHowItDoneDeleteButtons();
+                        }
+                    });
+
+                    updateHowItDoneDeleteButtons();
+                }
 
                 // Service Option rows
                 const optionContainer = document.getElementById('options-container');

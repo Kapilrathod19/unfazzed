@@ -1079,6 +1079,7 @@
     'nos_clients' => 'NOS Clients',
     'discover_our_app' => 'Discover Our App ',
     'how_it_works' => 'How It Works',
+    'how_it_done' => 'How It\'s Done',
     'advance_payment_refund_message' => 'Your advance payment will be refunded within :days days.',
 
     'servicezone' => 'Service Zone',

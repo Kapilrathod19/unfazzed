@@ -180,6 +180,10 @@ class Service extends Model implements  HasMedia
         return $this->hasMany(ServiceAddon::class, 'service_id','id');
     }
 
+    public function serviceHowItDone(){
+        return $this->hasMany(ServiceHowItDone::class, 'service_id','id');
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('service_attachment')->singleFile();
