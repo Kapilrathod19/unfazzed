@@ -478,6 +478,90 @@
                             </div>
                         </div>
 
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                @php
+                                    $oldIncluded = old('whats_included', []);
+                                    $includedRows = !empty($oldIncluded) ? $oldIncluded : (!empty($whatsIncluded) ? $whatsIncluded : []);
+                                @endphp
+                                <h5 class="fw-bold mb-3">{{ __('messages.whats_included') }}</h5>
+                                <div id="whats-included-container">
+                                    @if (!empty($includedRows))
+                                        @foreach ($includedRows as $index => $item)
+                                            <div class="included-row row mb-3 p-3 border rounded" data-index="{{ $index }}">
+                                                <input type="hidden" name="whats_included[{{ $index }}][id]" value="{{ data_get($item, 'id') }}">
+                                                <div class="form-group col-10">
+                                                    {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', "whats_included[{$index}][title]")->class('form-control-label') }}
+                                                    {{ html()->text("whats_included[{$index}][title]", data_get($item, 'title'))->placeholder(__('messages.description'))->class('form-control')->required() }}
+                                                </div>
+                                                <div class="form-group col-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-danger remove-included w-100">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="included-row row mb-3 p-3 border rounded" data-index="0">
+                                            <div class="form-group col-10">
+                                                {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', 'whats_included[0][title]')->class('form-control-label') }}
+                                                {{ html()->text('whats_included[0][title]', '')->placeholder(__('messages.description'))->class('form-control')->required() }}
+                                            </div>
+                                            <div class="form-group col-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-danger remove-included w-100" style="display:none;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success add-included mt-2">
+                                    <i class="fa fa-plus"></i> {{ __('messages.add') }}
+                                </button>
+                            </div>
+
+                            <div class="col-md-6">
+                                @php
+                                    $oldNotIncluded = old('whats_not_included', []);
+                                    $notIncludedRows = !empty($oldNotIncluded) ? $oldNotIncluded : (!empty($whatsNotIncluded) ? $whatsNotIncluded : []);
+                                @endphp
+                                <h5 class="fw-bold mb-3">{{ __('messages.whats_not_included') }}</h5>
+                                <div id="whats-not-included-container">
+                                    @if (!empty($notIncludedRows))
+                                        @foreach ($notIncludedRows as $index => $item)
+                                            <div class="not-included-row row mb-3 p-3 border rounded" data-index="{{ $index }}">
+                                                <input type="hidden" name="whats_not_included[{{ $index }}][id]" value="{{ data_get($item, 'id') }}">
+                                                <div class="form-group col-10">
+                                                    {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', "whats_not_included[{$index}][title]")->class('form-control-label') }}
+                                                    {{ html()->text("whats_not_included[{$index}][title]", data_get($item, 'title'))->placeholder(__('messages.description'))->class('form-control')->required() }}
+                                                </div>
+                                                <div class="form-group col-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-danger remove-not-included w-100">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="not-included-row row mb-3 p-3 border rounded" data-index="0">
+                                            <div class="form-group col-10">
+                                                {{ html()->label(__('messages.description') . ' <span class="text-danger">*</span>', 'whats_not_included[0][title]')->class('form-control-label') }}
+                                                {{ html()->text('whats_not_included[0][title]', '')->placeholder(__('messages.description'))->class('form-control')->required() }}
+                                            </div>
+                                            <div class="form-group col-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-danger remove-not-included w-100" style="display:none;">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success add-not-included mt-2">
+                                    <i class="fa fa-plus"></i> {{ __('messages.add') }}
+                                </button>
+                            </div>
+                        </div>
+
                         @if (auth()->user()->hasAnyRole(['admin', 'demo_admin']) &&
                                 isset($servicedata) &&
                                 $servicedata->is_service_request == 1 &&
@@ -1258,6 +1342,130 @@
                     });
 
                     updateHowItDoneDeleteButtons();
+                }
+
+                // What's Included rows
+                const includedContainer = document.getElementById('whats-included-container');
+                let includedIndex = includedContainer ? includedContainer.querySelectorAll('.included-row').length : 0;
+                const includedLabelDesc = "{{ __('messages.description') }}";
+
+                function updateIncludedDeleteButtons() {
+                    const rows = includedContainer.querySelectorAll('.included-row');
+                    rows.forEach(function(row) {
+                        const button = row.querySelector('.remove-included');
+                        if (button) {
+                            button.style.display = rows.length > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                function createIncludedRow(index, item = {}) {
+                    const row = document.createElement('div');
+                    row.className = 'included-row row mb-3 p-3 border rounded';
+                    row.dataset.index = index;
+                    const titleValue = item.title ? item.title : '';
+                    const idValue = item.id ? item.id : '';
+
+                    row.innerHTML = `
+                        <input type="hidden" name="whats_included[${index}][id]" value="${idValue}">
+                        <div class="form-group col-10">
+                            <label class="form-control-label" for="whats_included[${index}][title]">${includedLabelDesc} <span class="text-danger">*</span></label>
+                            <input type="text" name="whats_included[${index}][title]" class="form-control" value="${titleValue}" placeholder="${includedLabelDesc}" required>
+                        </div>
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-sm btn-danger remove-included w-100">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    return row;
+                }
+
+                const addIncludedButton = document.querySelector('.add-included');
+                if (addIncludedButton) {
+                    addIncludedButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const row = createIncludedRow(includedIndex, {});
+                        includedContainer.appendChild(row);
+                        includedIndex++;
+                        updateIncludedDeleteButtons();
+                    });
+                }
+
+                if (includedContainer) {
+                    includedContainer.addEventListener('click', function(event) {
+                        const removeButton = event.target.closest('.remove-included');
+                        if (!removeButton) return;
+                        event.preventDefault();
+                        const row = removeButton.closest('.included-row');
+                        if (row) {
+                            row.remove();
+                            updateIncludedDeleteButtons();
+                        }
+                    });
+                    updateIncludedDeleteButtons();
+                }
+
+                // What's Not Included rows
+                const notIncludedContainer = document.getElementById('whats-not-included-container');
+                let notIncludedIndex = notIncludedContainer ? notIncludedContainer.querySelectorAll('.not-included-row').length : 0;
+                const notIncludedLabelDesc = "{{ __('messages.description') }}";
+
+                function updateNotIncludedDeleteButtons() {
+                    const rows = notIncludedContainer.querySelectorAll('.not-included-row');
+                    rows.forEach(function(row) {
+                        const button = row.querySelector('.remove-not-included');
+                        if (button) {
+                            button.style.display = rows.length > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                function createNotIncludedRow(index, item = {}) {
+                    const row = document.createElement('div');
+                    row.className = 'not-included-row row mb-3 p-3 border rounded';
+                    row.dataset.index = index;
+                    const titleValue = item.title ? item.title : '';
+                    const idValue = item.id ? item.id : '';
+
+                    row.innerHTML = `
+                        <input type="hidden" name="whats_not_included[${index}][id]" value="${idValue}">
+                        <div class="form-group col-10">
+                            <label class="form-control-label" for="whats_not_included[${index}][title]">${notIncludedLabelDesc} <span class="text-danger">*</span></label>
+                            <input type="text" name="whats_not_included[${index}][title]" class="form-control" value="${titleValue}" placeholder="${notIncludedLabelDesc}" required>
+                        </div>
+                        <div class="form-group col-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-sm btn-danger remove-not-included w-100">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    return row;
+                }
+
+                const addNotIncludedButton = document.querySelector('.add-not-included');
+                if (addNotIncludedButton) {
+                    addNotIncludedButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const row = createNotIncludedRow(notIncludedIndex, {});
+                        notIncludedContainer.appendChild(row);
+                        notIncludedIndex++;
+                        updateNotIncludedDeleteButtons();
+                    });
+                }
+
+                if (notIncludedContainer) {
+                    notIncludedContainer.addEventListener('click', function(event) {
+                        const removeButton = event.target.closest('.remove-not-included');
+                        if (!removeButton) return;
+                        event.preventDefault();
+                        const row = removeButton.closest('.not-included-row');
+                        if (row) {
+                            row.remove();
+                            updateNotIncludedDeleteButtons();
+                        }
+                    });
+                    updateNotIncludedDeleteButtons();
                 }
 
                 // Service Option rows

@@ -184,6 +184,14 @@ class Service extends Model implements  HasMedia
         return $this->hasMany(ServiceHowItDone::class, 'service_id','id');
     }
 
+    public function whatsIncluded(){
+        return $this->hasMany(ServiceWhatsIncluded::class, 'service_id','id');
+    }
+
+    public function whatsNotIncluded(){
+        return $this->hasMany(ServiceWhatsNotIncluded::class, 'service_id','id');
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('service_attachment')->singleFile();

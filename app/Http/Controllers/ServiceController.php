@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ProviderZoneMapping;
 use App\Models\ServiceOption;
 use App\Models\ServiceHowItDone;
+use App\Models\ServiceWhatsIncluded;
+use App\Models\ServiceWhatsNotIncluded;
 use App\Models\ServiceZoneMapping;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -544,7 +546,9 @@ class ServiceController extends Controller
                 'providers',
                 'providerServiceAddress',
                 'zones',
-                'serviceHowItDone'
+                'serviceHowItDone',
+                'whatsIncluded',
+                'whatsNotIncluded'
             ])->find($id);
         }
 
@@ -608,12 +612,16 @@ class ServiceController extends Controller
         
         $serviceOptions = [];
         $serviceHowItDone = [];
+        $whatsIncluded = [];
+        $whatsNotIncluded = [];
         if ($servicedata && $servicedata->id) {
             $serviceOptions = $servicedata->serviceOptions()->get();
             $serviceHowItDone = $servicedata->serviceHowItDone()->get();
+            $whatsIncluded = $servicedata->whatsIncluded()->get();
+            $whatsNotIncluded = $servicedata->whatsNotIncluded()->get();
         }
 
-        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting', 'serviceOptions', 'serviceHowItDone'));
+        return view('service.create', compact('language_array', 'pageTitle', 'servicedata', 'auth_user', 'advancedPaymentSetting', 'visittype', 'slotservice', 'serviceZones', 'selectedZones', 'globalSeoSetting', 'serviceOptions', 'serviceHowItDone', 'whatsIncluded', 'whatsNotIncluded'));
     }
 
     /**
@@ -931,6 +939,52 @@ class ServiceController extends Controller
                 }
                 $removedStep->forceDelete();
             }
+        }
+
+        // Handle What's Included
+        $includedData = $request->input('whats_included', []);
+        if (is_array($includedData)) {
+            $submittedIds = [];
+            foreach ($includedData as $data) {
+                if (empty($data['title'])) continue;
+                $record = null;
+                if (!empty($data['id'])) {
+                    $record = ServiceWhatsIncluded::where('service_id', $result->id)->where('id', $data['id'])->first();
+                }
+                if (!$record) {
+                    $record = new ServiceWhatsIncluded();
+                    $record->service_id = $result->id;
+                }
+                $record->title = $data['title'];
+                $record->save();
+                $submittedIds[] = $record->id;
+            }
+            ServiceWhatsIncluded::where('service_id', $result->id)->whereNotIn('id', $submittedIds)->forceDelete();
+        } else {
+            ServiceWhatsIncluded::where('service_id', $result->id)->forceDelete();
+        }
+
+        // Handle What's Not Included
+        $notIncludedData = $request->input('whats_not_included', []);
+        if (is_array($notIncludedData)) {
+            $submittedIds = [];
+            foreach ($notIncludedData as $data) {
+                if (empty($data['title'])) continue;
+                $record = null;
+                if (!empty($data['id'])) {
+                    $record = ServiceWhatsNotIncluded::where('service_id', $result->id)->where('id', $data['id'])->first();
+                }
+                if (!$record) {
+                    $record = new ServiceWhatsNotIncluded();
+                    $record->service_id = $result->id;
+                }
+                $record->title = $data['title'];
+                $record->save();
+                $submittedIds[] = $record->id;
+            }
+            ServiceWhatsNotIncluded::where('service_id', $result->id)->whereNotIn('id', $submittedIds)->forceDelete();
+        } else {
+            ServiceWhatsNotIncluded::where('service_id', $result->id)->forceDelete();
         }
         
         $message = __('messages.update_form', ['form' => __('messages.service')]);
