@@ -216,12 +216,12 @@ class ServiceController extends Controller
         $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
         if (auth()->user() !== null) {
             if (auth()->user()->hasRole('admin')) {
-                $service = Service::where('service_type', 'service')->withTrashed()->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones')->findorfail($id);
+                $service = Service::where('service_type', 'service')->withTrashed()->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones', 'serviceOptions', 'serviceHowItDone', 'whatsIncluded', 'whatsNotIncluded')->findorfail($id);
             } else {
-                $service = Service::where('service_type', 'service')->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones')->findorfail($id);
+                $service = Service::where('service_type', 'service')->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones', 'serviceOptions', 'serviceHowItDone', 'whatsIncluded', 'whatsNotIncluded')->findorfail($id);
             }
         } else {
-            $service = Service::where('service_type', 'service')->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones')->find($id);
+            $service = Service::where('service_type', 'service')->where('status', 1)->with('providers', 'category', 'serviceRating', 'serviceAddon', 'translations', 'zones', 'serviceOptions', 'serviceHowItDone', 'whatsIncluded', 'whatsNotIncluded')->find($id);
         }
 
         if (empty($service)) {

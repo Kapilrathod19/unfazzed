@@ -104,6 +104,10 @@ class ServiceDetailResource extends JsonResource
                     ]
                 ];
             }),
+            'service_options' => ServiceOptionResource::collection($this->serviceOptions),
+            'how_it_done' => ServiceHowItDoneResource::collection($this->serviceHowItDone),
+            'whats_included' => ServiceWhatsIncludedResource::collection($this->whatsIncluded),
+            'whats_not_included' => ServiceWhatsNotIncludedResource::collection($this->whatsNotIncluded),
         ];
     }
 }
