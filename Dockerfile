@@ -1,32 +1,22 @@
 FROM php:8.2-apache
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    zip \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    libicu-dev \
-    libjpeg-dev \
-    libfreetype6-dev
+    git unzip zip curl \
+    libpng-dev libonig-dev libxml2-dev \
+    libzip-dev libicu-dev
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        intl \
-        zip \
-        gd
+# PHP extensions required by Laravel
+RUN docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    intl \
+    zip
 
-# Enable apache rewrite
+# Enable Apache rewrite
 RUN a2enmod rewrite
 
 # Install Composer
@@ -34,20 +24,27 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy files
+# Copy project
 COPY . .
 
-# Composer memory fix
+# IMPORTANT ✅ create env before composer
+RUN cp .env.example .env || true
+
+# Avoid Laravel artisan crash
+ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Install dependencies
+# Install packages WITHOUT scripts
 RUN composer install \
     --no-dev \
     --prefer-dist \
     --no-interaction \
-    --optimize-autoloader
+    --no-scripts
 
-# Fix permissions
+# Generate key after install
+RUN php artisan key:generate || true
+
+# Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
