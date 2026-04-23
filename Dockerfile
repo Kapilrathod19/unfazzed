@@ -1,29 +1,29 @@
 FROM php:8.2-apache
 
-# Install system packages
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
     unzip \
     zip \
-    libzip-dev \
+    curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     libicu-dev \
     libjpeg-dev \
     libfreetype6-dev
 
-# Install PHP extensions required by Laravel
+# Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
-        pdo \
         pdo_mysql \
         mbstring \
-        zip \
         exif \
         pcntl \
+        bcmath \
         intl \
+        zip \
         gd
 
 # Enable apache rewrite
@@ -34,19 +34,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy project
+# Copy files
 COPY . .
 
-# Allow composer unlimited memory
+# Composer memory fix
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 # Install dependencies
 RUN composer install \
     --no-dev \
     --prefer-dist \
-    --optimize-autoloader \
     --no-interaction \
-    --no-progress
+    --optimize-autoloader
 
 # Fix permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
