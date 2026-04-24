@@ -28,6 +28,7 @@ use App\Models\Payment;
 use PDF;
 use App\Traits\ZoneTrait;
 use App\Models\ServiceZone;
+use App\Models\Category;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Artisan;
 
@@ -474,5 +475,16 @@ class CommanController extends Controller
         ];
 
         return comman_custom_response($response);
+    }
+
+    public function getRegistrationFields(Request $request)
+    {
+        $categories = Category::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
+        $zones = ServiceZone::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
+
+        return comman_custom_response([
+            'categories' => $categories,
+            'zones' => $zones
+        ]);
     }
 }

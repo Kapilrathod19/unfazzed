@@ -30,6 +30,7 @@ use App\Models\ProviderZoneMapping;
 use App\Traits\ZoneTrait;
 use App\Models\ServiceZoneMapping;
 use App\Models\ServiceZone;
+use App\Models\Category;
 
 class UserController extends Controller
 {
@@ -152,24 +153,35 @@ class UserController extends Controller
                 // }
 
                 // Handle zone_id for provider
-                if ($user->user_type === 'provider' && !empty($service_zones)) {
+                if ($user->user_type === 'provider') {
+                    // Handle service zones
+                    if (!empty($service_zones)) {
+                        if (is_string($service_zones)) {
+                            $zone_ids = array_filter(array_map('intval', array_map('trim', explode(',', $service_zones))));
+                        } elseif (is_array($service_zones)) {
+                            $zone_ids = array_filter(array_map('intval', $service_zones));
+                        } else {
+                            $zone_ids = [intval($service_zones)];
+                        }
 
-                    if (is_string($service_zones)) {
-                        $zone_ids = array_filter(array_map('intval', array_map('trim', explode(',', $service_zones))));
-                    } elseif (is_array($service_zones)) {
-                        $zone_ids = array_filter(array_map('intval', $service_zones));
-                    } else {
-                        $zone_ids = [intval($service_zones)];
+                        if (!empty($zone_ids)) {
+                            $user->serviceZones()->sync($zone_ids);
+                        }
                     }
 
+                    // Handle categories
+                    $categories = $request->input('categories');
+                    if (!empty($categories)) {
+                        if (is_string($categories)) {
+                            $category_ids = array_filter(array_map('intval', array_map('trim', explode(',', $categories))));
+                        } elseif (is_array($categories)) {
+                            $category_ids = array_filter(array_map('intval', $categories));
+                        } else {
+                            $category_ids = [intval($categories)];
+                        }
 
-
-                    foreach ($zone_ids as $zid) {
-                        if (!empty($zid)) {
-                            ProviderZoneMapping::firstOrCreate([
-                                'provider_id' => $user->id,
-                                'zone_id' => $zid,
-                            ]);
+                        if (!empty($category_ids)) {
+                            $user->categories()->sync($category_ids);
                         }
                     }
                 }
@@ -618,6 +630,27 @@ class UserController extends Controller
                     ->delete();
             } catch (\Exception $e) {
                 \Log::error('Zone sync failed for provider ' . $user->id . ': ' . $e->getMessage());
+            }
+        }
+
+        // Handle categories sync
+        if ($user->user_type === 'provider' && isset($data['categories'])) {
+            try {
+                $categories = $data['categories'];
+                if (is_string($categories)) {
+                    $decoded = json_decode($categories, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $categories = $decoded;
+                    } elseif (strpos($categories, ',') !== false) {
+                        $categories = explode(',', $categories);
+                    } else {
+                        $categories = [$categories];
+                    }
+                }
+                $category_ids = array_filter(array_map('intval', (array) $categories));
+                $user->categories()->sync($category_ids);
+            } catch (\Exception $e) {
+                \Log::error('Category sync failed for provider ' . $user->id . ': ' . $e->getMessage());
             }
         }
 

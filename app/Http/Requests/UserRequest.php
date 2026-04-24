@@ -39,6 +39,10 @@ class UserRequest extends FormRequest
             $allDocIds = Documents::pluck('id')->toArray();
             $rules['document_id'] = ['nullable', 'array'];
             $rules['document_id.*'] = ['in:' . implode(',', $allDocIds)];
+            
+            // Add validation for categories and zones
+            $rules['categories'] = ['nullable']; // Can be array or comma-separated string
+            $rules['service_zones'] = ['nullable']; // Can be array or comma-separated string
         }
 
         return $rules;
