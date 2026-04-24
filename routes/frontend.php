@@ -23,7 +23,12 @@ require __DIR__.'/auth.php';
 
 
 Route::middleware([CheckInstallation::class])->group(function () {
-    Route::get('/', [FrontendController::class, 'index'])->name('frontend.index');
+    // Redirect root to login page as frontend is not required
+    Route::get('/', function () {
+        return redirect()->route('login');
+    })->name('frontend.index');
+
+    /* Frontend routes disabled as per user request
     Route::get('/login-page', [FrontendController::class, 'userLoginView'])->name('user.login');
     Route::post('/user-login', [CustomerController::class, 'userLogin'])->name('user.user_login');
     Route::get('/register-page', [FrontendController::class, 'userRegistrationView'])->name('user.register');
@@ -54,11 +59,13 @@ Route::middleware([CheckInstallation::class])->group(function () {
     Route::get('/book-service', [FrontendController::class, 'bookServiceView'])->name('book.service');
     Route::get('/rating-all', [FrontendController::class, 'ratingList'])->name('rating.all');
     Route::get('/booking-detail/{id}', [FrontendController::class, 'bookingDetail'])->name('booking.detail');
+    */
 });
 
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    /*
     Route::get('/helpdesk-list', [FrontendController::class, 'helpdeskList'])->name('helpdesk.list');
     Route::get('/helpdesk-datatable', [FrontendController::class, 'helpdeskDatatable'])->name('helpdesk.data');
     Route::get('/helpdesk-detail/{id}', [FrontendController::class, 'helpdeskDetail'])->name('helpdesk.detail');
@@ -69,7 +76,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('save-booking-rating', [BookingController::class, 'saveBookingRating' ] )->name('save-booking-rating');
     Route::post('save-recently-viewed/{serviceId}',[FrontendSettingController::class,'recentlyViewedStore' ])->name('save-recently-viewed');
     Route::get('get-recently-viewed',[FrontendSettingController::class,'recentlyViewedGet' ])->name('get-recently-viewed');
+    */
 });
+/*
 Route::post('/user/set-location', [FrontendController::class, 'setLocation'])->name('user.set-location');
 Route::get('/category-datatable', [FrontendController::class, 'categoryDatatable'])->name('category.data');
 Route::get('/subcategory-datatable', [FrontendController::class, 'subCategoryDatatable'])->name('subcategory.data');
@@ -81,14 +90,4 @@ Route::get('/post-job-datatable', [FrontendController::class, 'postJobDatatable'
 Route::get('/favouriteservice-datatable', [FrontendController::class, 'favouriteServiceDatatable'])->name('favouriteservice.data');
 Route::get('/rating-datatable', [FrontendController::class, 'ratingDatatable'])->name('rating.data');
 Route::post('/user-subscribe', [FrontendController::class, 'userSubscribe'])->name('user.subscribe');
-
-
-
-
-
-
-
-
-
-
-
+*/
