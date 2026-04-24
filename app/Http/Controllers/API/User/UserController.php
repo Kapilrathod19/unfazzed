@@ -72,8 +72,6 @@ class UserController extends Controller
         $input['password'] = Hash::make($password);
         $input['contact_number'] = $input['contact_number'] ?? null;
 
-        // Handle zone selection
-        $service_zones = $request->input('service_zones', []);
         // $zone_id = $request->input('zone_id');
 
         if ($request->provider_id !== null && $request->id == null && default_earning_type() === 'subscription') {
@@ -143,18 +141,23 @@ class UserController extends Controller
                     }
                 }
             }
+            // Create wallet for provider
+            if ($user->user_type === 'provider') {
+                Wallet::create([
+                    'title' => $user->display_name,
+                    'user_id' => $user->id,
+                    'amount' => 0
+                ]);
+            }
+
             if ($user->user_type == 'user' || $user->user_type == 'provider' || $user->user_type == 'handyman') {
                 $id = $user->id;
                 $user->assignRole($input['user_type']);
 
-                // Attach zones if provided
-                // if (!empty($service_zones)) {
-                //     $user->serviceZones()->attach($service_zones);
-                // }
-
                 // Handle zone_id for provider
                 if ($user->user_type === 'provider') {
                     // Handle service zones
+                    $service_zones = $request->input('service_zones');
                     if (!empty($service_zones)) {
                         if (is_string($service_zones)) {
                             $zone_ids = array_filter(array_map('intval', array_map('trim', explode(',', $service_zones))));
@@ -170,7 +173,7 @@ class UserController extends Controller
                     }
 
                     // Handle categories
-                    $categories = $request->input('categories');
+                    $categories = $request->input('category_ids') ?? $request->input('categories');
                     if (!empty($categories)) {
                         if (is_string($categories)) {
                             $category_ids = array_filter(array_map('intval', array_map('trim', explode(',', $categories))));

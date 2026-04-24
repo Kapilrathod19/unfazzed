@@ -479,12 +479,16 @@ class CommanController extends Controller
 
     public function getRegistrationFields(Request $request)
     {
-        $categories = Category::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
-        $zones = ServiceZone::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
+        $categories = \App\Models\Category::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
+        $zones = \App\Models\ServiceZone::where('status', 1)->select('id', 'name')->orderBy('name', 'asc')->get();
+        $providerTypes = \App\Models\ProviderType::where('status', 1)->select('id', 'name', 'commission', 'type')->orderBy('name', 'asc')->get();
+        $documents = \App\Models\Documents::where('status', 1)->select('id', 'name', 'is_required')->orderBy('name', 'asc')->get();
 
         return comman_custom_response([
             'categories' => $categories,
-            'zones' => $zones
+            'zones' => $zones,
+            'provider_types' => $providerTypes,
+            'documents' => $documents
         ]);
     }
 }

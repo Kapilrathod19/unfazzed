@@ -30,7 +30,7 @@ class UserRequest extends FormRequest
         $rules = [
             'username'       => 'required|max:255|unique:users,username,' . $id,
             'email'          => 'required|email|max:255|unique:users,email,' . $id,
-            'contact_number' => 'required', 'unique:users,contact_number,' . $id,
+            'contact_number' => 'required|unique:users,contact_number,' . $id,
             'profile_image'  => 'nullable|mimetypes:image/jpeg,image/png,image/jpg,image/gif',
         ];
 
@@ -40,9 +40,11 @@ class UserRequest extends FormRequest
             $rules['document_id'] = ['nullable', 'array'];
             $rules['document_id.*'] = ['in:' . implode(',', $allDocIds)];
             
-            // Add validation for categories and zones
-            $rules['categories'] = ['nullable']; // Can be array or comma-separated string
-            $rules['service_zones'] = ['nullable']; // Can be array or comma-separated string
+            // Add validation for categories, zones, and taxes
+            $rules['category_ids'] = ['nullable']; 
+            $rules['service_zones'] = ['nullable']; 
+            $rules['tax_id'] = ['nullable'];
+            $rules['providertype_id'] = ['required_if:user_type,provider', 'exists:provider_types,id'];
         }
 
         return $rules;
