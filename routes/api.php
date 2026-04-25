@@ -75,6 +75,8 @@ Route::get('post-job-status', [API\PostJobRequestController::class, 'postRequest
 Route::get('promotionalbanner-list', [API\PromotionalBannerController::class, 'promtionalBannerList']);
 Route::get('document-list', [API\DocumentsController::class, 'getDocumentList']);
 Route::get('zones', [API\ServiceZoneController::class, 'getZonesForDropdown']);
+Route::get('offer-list', [API\OfferForYouController::class, 'getOfferList']);
+
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('service-save', [App\Http\Controllers\ServiceController::class, 'store']);
