@@ -211,6 +211,20 @@ use Lavary\Menu\Menu;
                     ->prepend('<i class="ri-add-box-line"></i>')
                     ->link->attr(['class' => '']);
 
+        $menu->add('<span>'.__('messages.offers_for_you').'</span>', ['class' => ''])
+                ->prepend('<i class="ri-gift-line"></i>')
+                ->nickname('offers_for_you')
+                ->link->attr(["class" => ""])
+                ->href('#offers_for_you');
+    
+                $menu->offers_for_you->add('<span>'.__('messages.list_form_title',['form' => __('messages.offers_for_you')]).'</span>', ['class' => 'sidebar-layout' ,'route' => 'offers-for-you.index'])
+                    ->prepend('<i class="ri-list-unordered"></i>')
+                    ->link->attr(['class' => '']);
+
+                $menu->offers_for_you->add('<span>'.__('messages.add_form_title',['form' => __('messages.offers_for_you')]).'</span>', ['class' => 'sidebar-layout' ,'route' => 'offers-for-you.create'])
+                    ->prepend('<i class="ri-add-box-line"></i>')
+                    ->link->attr(['class' => '']);
+
         $menu->add('<span>'.__('messages.pages').'</span>', ['class' => ''])
                 ->prepend('<i class="ri-pages-line"></i>')
                 ->nickname('pages')

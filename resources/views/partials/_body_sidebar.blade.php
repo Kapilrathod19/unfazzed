@@ -765,6 +765,56 @@
             ->link->attr(['class' => '']);
 
         $menu
+            ->add(
+                '<span>' .
+                    __('messages.list_form_title', ['form' => __('messages.offers_for_you')]) .
+                    '</span><span class="custom-tooltip"><span class="tooltip-text">' .
+                    __('messages.offers_for_you') .
+                    '</span></span>',
+                ['class' => ''],
+            )
+            ->prepend(
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 12V22H4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M22 7H2V12H22V7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12 22V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12 7C12 7 12 2 7 2C2 2 2 7 7 7H12ZM12 7C12 7 12 2 17 2C22 2 22 7 17 7H12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>',
+            )
+            ->nickname('offers_for_you')
+            ->link->attr(['class' => ''])
+            ->href('#offers_for_you');
+
+        $menu->offers_for_you
+            ->add('<span>' . __('messages.list_form_title', ['form' => __('messages.offers_for_you')]) . '</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'offers-for-you.index',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.34315 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#currentColor" stroke-width="1.5"/>
+<path d="M6 15.8L7.14286 17L10 14" stroke="#currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6 8.8L7.14286 10L10 7" stroke="#currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13 9L18 9" stroke="#currentColor" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M13 16L18 16" stroke="#currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>',
+            )
+            ->link->attr(['class' => '']);
+
+        $menu->offers_for_you
+            ->add('<span>' . __('messages.add_form_title', ['form' => __('messages.offers_for_you')]) . '</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'offers-for-you.create',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+<path d="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>',
+            )
+            ->link->attr(['class' => '']);
+
+        $menu
             ->add(__('messages.sidebar_form_title', ['form' => trans('messages.ratings')]), [
                 'class' => 'category-main',
             ])

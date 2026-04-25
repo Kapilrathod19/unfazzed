@@ -13,6 +13,7 @@ use App\Http\Controllers\HandymanController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\SliderController;
+use App\Http\Controllers\OfferForYouController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
@@ -224,6 +225,12 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::post('slider-action', [SliderController::class, 'action'])->name('slider.action');
         Route::post('slider/{id}', [SliderController::class, 'destroy'])->name('slider.destroy');
     });
+
+        Route::resource('offers-for-you', OfferForYouController::class);
+        Route::get('offers-for-you-index-data', [OfferForYouController::class, 'index_data'])->name('offers-for-you.index_data');
+        Route::post('offers-for-you-bulk-action', [OfferForYouController::class, 'bulk_action'])->name('offers-for-you.bulk-action');
+        Route::post('offers-for-you-action', [OfferForYouController::class, 'action'])->name('offers-for-you.action');
+        Route::post('offers-for-you/{id}', [OfferForYouController::class, 'destroy'])->name('offers-for-you.destroy');
 
     Route::resource('payment', PaymentController::class);
     Route::get('cash-payment-list', [PaymentController::class, 'cashDatatable'])->name('cash.list');

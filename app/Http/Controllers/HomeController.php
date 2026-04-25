@@ -349,6 +349,11 @@ class HomeController extends Controller
                 $servicezone_status->status = $request->status;
                 $servicezone_status->save();
                 break;
+            case 'offer_status':
+                $offer_status = \App\Models\OfferForYou::find($request->id);
+                $offer_status->status = $request->status;
+                $offer_status->save();
+                break;
             default:
                 $message = 'error';
                 break;

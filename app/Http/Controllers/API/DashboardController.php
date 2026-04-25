@@ -33,6 +33,7 @@ use App\Models\{
     Permission,
     PromotionalBanner,
     ServiceZone,
+    OfferForYou,
 };
 use App\Http\Resources\API\{
     BookingResource,
@@ -46,7 +47,8 @@ use App\Http\Resources\API\{
     PostJobRequestResource,
     BlogResource,
     CountryResource,
-    TypeResource
+    TypeResource,
+    OfferForYouResource
 };
 use App\Http\Resources\PromotionalBannerResource;
 
@@ -104,6 +106,9 @@ class DashboardController extends Controller
             ->orderBy('promotional_banners.created_at', 'desc')
             ->get();
         $promotional_banners = PromotionalBannerResource::collection($banners);
+
+        $offers_for_you = OfferForYou::where('status', 1)->get();
+        $offers_for_you = OfferForYouResource::collection($offers_for_you);
 
         // Get categories
         $category_section = FrontendSetting::getValueByKey('section_2');
@@ -338,6 +343,7 @@ class DashboardController extends Controller
             'category'       => $category,
             'service'        => $service,
             'featured_service' => $featured_service,
+            'offers_for_you' => $offers_for_you,
             'provider'       => $provider,
             'customer_review' => $customer_review,
             'notification_unread_count' => $notification,

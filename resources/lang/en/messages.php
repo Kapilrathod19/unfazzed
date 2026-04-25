@@ -1196,5 +1196,9 @@
 'type_and_press_enter' => 'Type and press enter...',
 'seo_fields' => 'SEO Fields',
 'seo_filds_description' => 'You can update the SEO fields here. You can also update the SEO image and global canonical URL.',
-'only_jpg_png_jpeg_allowed' => 'Only JPG, PNG, and JPEG allowed.',
+    'only_jpg_png_jpeg_allowed' => 'Only JPG, PNG, and JPEG allowed.',
+    'offers_for_you' => 'Offers For You',
+    'short_description_1' => 'Short Description 1',
+    'short_description_2' => 'Short Description 2',
+    'background_color' => 'Background Color',
 );
