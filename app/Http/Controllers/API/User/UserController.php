@@ -302,6 +302,9 @@ class UserController extends Controller
                 }
                 $success['is_subscribe'] = is_subscribed_user($user->id);
                 $success['provider_id'] = admin_id();
+                
+                $success['total_category'] = $user->categories()->count();
+                $success['total_zone'] = $user->providerZones()->count();
             }
             if ($user->user_type == 'provider' || $user->user_type == 'user') {
                 $wallet = Wallet::where('user_id', $user->id)->first();

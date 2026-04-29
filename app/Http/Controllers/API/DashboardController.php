@@ -452,11 +452,16 @@ class DashboardController extends Controller
             $upcomming_booking = BookingResource::collection($upcomming_booking);
         }
 
+        $total_category = $provider->categories()->count();
+        $total_zone = $provider->zones()->count();
+
         $response = [
             'status'         => true,
             'total_booking'  => $total_booking,
             'total_service'  => $total_service,
             'total_active_handyman' => $total_active_handyman->count(),
+            'total_category' => $total_category,
+            'total_zone'     => $total_zone,
             'total_cash_in_hand'     => total_cash_in_hand(auth()->user()->id),
             'service'        => $service,
             'handyman'       => $handyman,
