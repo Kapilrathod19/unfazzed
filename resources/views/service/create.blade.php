@@ -75,14 +75,14 @@
 
                                     <!-- SubCategory Selection -->
                                     <div class="form-group col-md-4">
-                                        {{ html()->label(__('messages.select_name', ['select' => __('messages.subcategory')]), 'category_id')->class('form-control-label') }}
+                                        {{ html()->label(__('messages.select_name', ['select' => __('messages.subcategory')]) . ' <span class="text-danger">*</span>', 'subcategory_id')->class('form-control-label') }}
                                         <select name="subcategory_id" id="subcategory_id_{{ $language['id'] }}"
                                             class="form-select select2js-subcategory subcategory_id"
                                             data-select2-type="subcategory"
                                             data-selected-id="{{ $servicedata->subcategory_id ?? '' }}"
                                             data-language-id="{{ $language['id'] }}"
                                             data-ajax--url="{{ route('ajax-list', ['type' => 'subcategory', 'category_id' => $servicedata->category_id ?? '', 'language_id' => $language['id']]) }}"
-                                            data-placeholder="{{ __('messages.select_name', ['select' => __('messages.subcategory')]) }}">
+                                            data-placeholder="{{ __('messages.select_name', ['select' => __('messages.subcategory')]) }}" required>
                                         </select>
                                         <small class="help-block with-errors text-danger"></small>
                                     </div>

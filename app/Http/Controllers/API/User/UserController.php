@@ -1166,6 +1166,20 @@ class UserController extends Controller
         $user = User::where('contact_number', $contact_number)->first();
 
         if (!$user) {
+            // Validate email/username for new user to prevent 500 error
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'email' => 'required|email|unique:users,email',
+                'username' => 'nullable|string|unique:users,username',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                    'all_message' => $validator->errors()
+                ], 406);
+            }
+
             // Check if username (phone) already exists
             $existingUsername = User::where('username', $contact_number)->first();
             if ($existingUsername) {
@@ -1191,7 +1205,7 @@ class UserController extends Controller
             
             $message = trans('messages.save_form', ['form' => 'user']);
         } else {
-            $user->update($input);
+            // If contact number exists, just log them in without overwriting their profile
             $message = trans('messages.login_success');
         }
 
