@@ -190,9 +190,11 @@ class UserController extends Controller
                 }
 
 
-                $verificationLink = route('verify', ['id' => $id]);
-                Mail::to($user->email)->send(new VerificationEmail($verificationLink));
-                $message = 'Email Verification link has been sent to your email. Please Check your inbox';
+                // $verificationLink = route('verify', ['id' => $id]);
+                // Mail::to($user->email)->send(new VerificationEmail($verificationLink));
+                // $message = 'Email Verification link has been sent to your email. Please Check your inbox';
+                
+                $message = trans('messages.save_form', ['form' => $input['user_type']]);
                 $response = [
                     'message' => $message,
                     'data' => $user
@@ -1147,6 +1149,59 @@ class UserController extends Controller
 
         $response = [
             'data' => $zones
+        ];
+
+        return comman_custom_response($response);
+    }
+
+    public function otpLogin(Request $request)
+    {
+        $input = $request->all();
+        $contact_number = $input['contact_number'] ?? null;
+
+        if (!$contact_number) {
+            return comman_message_response('Contact number is required', 400);
+        }
+
+        $user = User::where('contact_number', $contact_number)->first();
+
+        if (!$user) {
+            // Check if username (phone) already exists
+            $existingUsername = User::where('username', $contact_number)->first();
+            if ($existingUsername) {
+                $input['username'] = $contact_number . '_' . time();
+            } else {
+                $input['username'] = $contact_number;
+            }
+
+            $input['user_type'] = 'user';
+            $input['login_type'] = 'mobile';
+            $input['display_name'] = ($input['first_name'] ?? '') . " " . ($input['last_name'] ?? '');
+            $input['password'] = Hash::make($contact_number); // Dummy password
+            
+            $user = User::create($input);
+            $user->assignRole('user');
+            
+            // Create wallet
+            \App\Models\Wallet::create([
+                'title' => $user->display_name,
+                'user_id' => $user->id,
+                'amount' => 0
+            ]);
+            
+            $message = trans('messages.save_form', ['form' => 'user']);
+        } else {
+            $user->update($input);
+            $message = trans('messages.login_success');
+        }
+
+        $user['api_token'] = $user->createToken('auth_token')->plainTextToken;
+        $user['profile_image'] = getSingleMedia($user, 'profile_image', null);
+
+        $response = [
+            'status' => true,
+            'message' => $message,
+            'data' => $user
         ];
 
         return comman_custom_response($response);

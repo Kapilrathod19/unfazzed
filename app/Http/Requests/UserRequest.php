@@ -53,6 +53,8 @@ class UserRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // Disabled document validation so you can test registration with pure JSON
+            /*
             if ($this->input('user_type') === 'provider' && request()->is('api/*')) {
                 $submittedIds = (array) $this->input('document_id', []);
                 $requiredDocs = Documents::where('is_required', 1)->where('status', 1)->pluck('id')->toArray();
@@ -75,6 +77,7 @@ class UserRequest extends FormRequest
                     }
                 }
             }
+            */
         });
     }
 

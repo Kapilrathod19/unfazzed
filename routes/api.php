@@ -57,6 +57,7 @@ Route::post('check-field', [API\User\UserController::class, 'checkUsername']);
 Route::post('login', [API\User\UserController::class, 'login']);
 Route::post('forgot-password', [API\User\UserController::class, 'forgotPassword']);
 Route::post('social-login', [API\User\UserController::class, 'socialLogin']);
+Route::post('otp-login', [API\User\UserController::class, 'otpLogin']);
 Route::post('contact-us', [API\User\UserController::class, 'contactUs']);
 Route::post('user-email-verify', [API\User\UserController::class, 'verify']);
 
