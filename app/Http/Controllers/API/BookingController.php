@@ -210,19 +210,19 @@ class BookingController extends Controller
 
         $booking_data = Booking::with('customer', 'handymanAdded', 'provider', 'service', 'bookingRating', 'bookingPostJob', 'bookingAddonService', 'bookingPackage', 'payment')->where('id', $id)->first();
 
-        $latest_payment = Payment::where('booking_id', $id)->orderBy('id', 'desc')->first();
-        $booking_data->payment = $latest_payment ?? null;
-
         if ($booking_data == null) {
             $message = __('messages.booking_not_found');
             return comman_message_response($message, 400);
         }
+
+        $latest_payment = Payment::where('booking_id', $id)->orderBy('id', 'desc')->first();
+        $booking_data->payment = $latest_payment ?? null;
         $booking_detail = new BookingDetailResource($booking_data);
 
         $rating_data = BookingRatingResource::collection($booking_detail->bookingRating->take(5));
         $service = new ServiceResource($booking_detail->service);
-        $customer = new UserResource($booking_detail->customer);
-        $provider_data = new UserResource($booking_detail->provider);
+        $customer = UserResource::make($booking_detail->customer);
+        $provider_data = UserResource::make($booking_detail->provider);
         $handyman_data = HandymanResource::collection($booking_detail->handymanAdded);
 
         $customer_review = null;
@@ -293,8 +293,8 @@ class BookingController extends Controller
 
         $rating_data = BookingRatingResource::collection($booking_detail->bookingRating->take(5));
         $service = new ServiceResource($booking_detail->service);
-        $customer = new UserResource($booking_detail->customer);
-        $provider_data = new UserResource($booking_detail->provider);
+        $customer = UserResource::make($booking_detail->customer);
+        $provider_data = UserResource::make($booking_detail->provider);
         $handyman_data = HandymanResource::collection($booking_detail->handymanAdded);
 
         $customer_review = null;
@@ -672,37 +672,41 @@ class BookingController extends Controller
 
         if ($data['status'] == 'completed' && $data['payment_status'] == 'pending_by_admin') {
             $handyman = BookingHandymanMapping::where('booking_id', $bookingdata->id)->first();
-            $user = User::where('id', $handyman->handyman_id)->first();
-            $payment_history = [
-                'payment_id' => $paymentdata->id,
-                'booking_id' => $paymentdata->booking_id,
-                'type' => $paymentdata->payment_type,
-                'sender_id' => $bookingdata->customer_id,
-                'receiver_id' => $handyman->handyman_id,
-                'total_amount' => $paymentdata->total_amount,
-                'datetime' => date('Y-m-d H:i:s'),
-                'text' =>  __('messages.payment_transfer', [
-                    'from' => get_user_name($bookingdata->customer_id),
-                    'to' => get_user_name($handyman->handyman_id),
-                    'amount' => getPriceFormat((float)$paymentdata->total_amount)
-                ]),
-            ];
-            if ($user->user_type == 'provider') {
-                $payment_history['status'] = config('constant.PAYMENT_HISTORY_STATUS.APPROVED_PROVIDER');
-                $payment_history['action'] = config('constant.PAYMENT_HISTORY_ACTION.PROVIDER_APPROVED_CASH');
-            } else {
-                $payment_history['status'] = config('constant.PAYMENT_HISTORY_STATUS.APPRVOED_HANDYMAN');
-                $payment_history['action'] = config('constant.PAYMENT_HISTORY_ACTION.HANDYMAN_APPROVED_CASH');
+            if ($handyman) {
+                $user = User::where('id', $handyman->handyman_id)->first();
+                if ($user) {
+                    $payment_history = [
+                        'payment_id' => $paymentdata->id,
+                        'booking_id' => $paymentdata->booking_id,
+                        'type' => $paymentdata->payment_type,
+                        'sender_id' => $bookingdata->customer_id,
+                        'receiver_id' => $handyman->handyman_id,
+                        'total_amount' => $paymentdata->total_amount,
+                        'datetime' => date('Y-m-d H:i:s'),
+                        'text' =>  __('messages.payment_transfer', [
+                            'from' => get_user_name($bookingdata->customer_id),
+                            'to' => get_user_name($handyman->handyman_id),
+                            'amount' => getPriceFormat((float)$paymentdata->total_amount)
+                        ]),
+                    ];
+                    if ($user->user_type == 'provider') {
+                        $payment_history['status'] = config('constant.PAYMENT_HISTORY_STATUS.APPROVED_PROVIDER');
+                        $payment_history['action'] = config('constant.PAYMENT_HISTORY_ACTION.PROVIDER_APPROVED_CASH');
+                    } else {
+                        $payment_history['status'] = config('constant.PAYMENT_HISTORY_STATUS.APPRVOED_HANDYMAN');
+                        $payment_history['action'] = config('constant.PAYMENT_HISTORY_ACTION.HANDYMAN_APPROVED_CASH');
+                    }
+                    if (!empty($paymentdata->txn_id)) {
+                        $payment_history['txn_id'] = $paymentdata->txn_id;
+                    }
+                    if (!empty($paymentdata->other_transaction_detail)) {
+                        $payment_history['other_transaction_detail'] = $paymentdata->other_transaction_detail;
+                    }
+                    $res =  PaymentHistory::create($payment_history);
+                    $res->parent_id = $res->id;
+                    $res->update();
+                }
             }
-            if (!empty($paymentdata->txn_id)) {
-                $payment_history['txn_id'] = $paymentdata->txn_id;
-            }
-            if (!empty($paymentdata->other_transaction_detail)) {
-                $payment_history['other_transaction_detail'] = $paymentdata->other_transaction_detail;
-            }
-            $res =  PaymentHistory::create($payment_history);
-            $res->parent_id = $res->id;
-            $res->update();
         }
         $message = __('messages.update_form', ['form' => __('messages.booking')]);
 

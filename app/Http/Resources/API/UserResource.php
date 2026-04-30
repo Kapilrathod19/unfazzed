@@ -18,6 +18,9 @@ class UserResource extends JsonResource
      */
     public function toArray($request)
     {
+        if (is_null($this->resource)) {
+            return null;
+        }
         $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
         $providers_service_rating = (float) 0;
         $handyman_rating = (float) 0;
