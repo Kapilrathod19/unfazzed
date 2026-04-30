@@ -1167,10 +1167,15 @@ class UserController extends Controller
         $category_ids = array_filter(array_map('intval', (array) $category_ids));
 
         if (!empty($category_ids)) {
-            $user->categories()->syncWithoutDetaching($category_ids);
+            \App\Models\ProviderChangeRequest::create([
+                'provider_id' => $user->id,
+                'type' => 'category',
+                'value' => $category_ids,
+                'status' => 'pending'
+            ]);
         }
 
-        return comman_message_response(__('messages.save_form', ['form' => __('messages.category')]), 200);
+        return comman_message_response(__('messages.request_sent_for_approval'), 200);
     }
 
     public function deleteProviderCategory(Request $request)
@@ -1245,10 +1250,15 @@ class UserController extends Controller
         $zone_ids = array_filter(array_map('intval', (array) $zone_ids));
 
         if (!empty($zone_ids)) {
-            $user->zones()->syncWithoutDetaching($zone_ids);
+            \App\Models\ProviderChangeRequest::create([
+                'provider_id' => $user->id,
+                'type' => 'zone',
+                'value' => $zone_ids,
+                'status' => 'pending'
+            ]);
         }
 
-        return comman_message_response(__('messages.save_form', ['form' => __('messages.zone')]), 200);
+        return comman_message_response(__('messages.request_sent_for_approval'), 200);
     }
 
     public function deleteProviderZone(Request $request)

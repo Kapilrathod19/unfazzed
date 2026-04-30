@@ -55,8 +55,7 @@ use App\Http\Controllers\Installer\EnvironmentController;
 use App\Http\Controllers\Installer\DatabaseController;
 use App\Http\Controllers\Installer\FinalController;
 use App\Http\Controllers\PromotionalBannerController;
-
-
+use App\Http\Controllers\ProviderChangeRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +165,11 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::post('provider-action', [ProviderController::class, 'action'])->name('provider.action');
         Route::post('provider/{id}', [ProviderController::class, 'destroy'])->name('provider.destroy');
         Route::post('provider-bulk-action', [ProviderController::class, 'bulk_action'])->name('provider.bulk-action');
+        
+        Route::get('provider-change-request', [ProviderChangeRequestController::class, 'index'])->name('provider-change-request.index');
+        Route::get('provider-change-request-index-data', [ProviderChangeRequestController::class, 'index_data'])->name('provider-change-request.index_data');
+        Route::get('provider-change-request/approve/{id}', [ProviderChangeRequestController::class, 'approve'])->name('provider-change-request.approve');
+        Route::get('provider-change-request/reject/{id}', [ProviderChangeRequestController::class, 'reject'])->name('provider-change-request.reject');
     });
     Route::get('provider_info/{id}', [ProviderController::class, 'show'])->name('provider_info');
 
