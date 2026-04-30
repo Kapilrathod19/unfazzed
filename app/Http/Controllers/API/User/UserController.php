@@ -1217,6 +1217,62 @@ class UserController extends Controller
         return comman_custom_response($response);
     }
 
+    public function addProviderZone(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $request->validate([
+            'zone_id' => 'required'
+        ]);
+
+        $zone_ids = $request->zone_id;
+        
+        if (is_string($zone_ids)) {
+            $decoded = json_decode($zone_ids, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $zone_ids = $decoded;
+            } elseif (strpos($zone_ids, ',') !== false) {
+                $zone_ids = explode(',', $zone_ids);
+            } else {
+                $zone_ids = [$zone_ids];
+            }
+        }
+        
+        $zone_ids = array_filter(array_map('intval', (array) $zone_ids));
+
+        if (!empty($zone_ids)) {
+            $user->zones()->syncWithoutDetaching($zone_ids);
+        }
+
+        return comman_message_response(__('messages.save_form', ['form' => __('messages.zone')]), 200);
+    }
+
+    public function deleteProviderZone(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $request->validate([
+            'zone_id' => 'required'
+        ]);
+
+        $zone_id = $request->zone_id;
+
+        if ($user->zones()->where('zone_id', $zone_id)->exists()) {
+            $user->zones()->detach($zone_id);
+            return comman_message_response(__('messages.msg_deleted', ['name' => __('messages.zone')]), 200);
+        }
+
+        return comman_message_response(__('messages.no_record_found'), 400);
+    }
+
     public function otpLogin(Request $request)
     {
         $input = $request->all();

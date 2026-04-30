@@ -150,6 +150,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('add-provider-category', [API\User\UserController::class, 'addProviderCategory']);
     Route::post('delete-provider-category', [API\User\UserController::class, 'deleteProviderCategory']);
     Route::get('provider-zones', [API\User\UserController::class, 'getProviderZones']);
+    Route::post('add-provider-zone', [API\User\UserController::class, 'addProviderZone']);
+    Route::post('delete-provider-zone', [API\User\UserController::class, 'deleteProviderZone']);
     Route::get('provider-service-list', [API\ServiceController::class, 'getProviderServiceList']);
 
     Route::post('customer-booking-rating', [API\BookingController::class, 'bookingRatingByCustomer']);
