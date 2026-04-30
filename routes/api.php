@@ -147,6 +147,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('handyman-dashboard', [API\DashboardController::class, 'handymanDashboard']);
 
     Route::get('provider-categories', [API\User\UserController::class, 'getProviderCategories']);
+    Route::post('add-provider-category', [API\User\UserController::class, 'addProviderCategory']);
+    Route::post('delete-provider-category', [API\User\UserController::class, 'deleteProviderCategory']);
     Route::get('provider-zones', [API\User\UserController::class, 'getProviderZones']);
     Route::get('provider-service-list', [API\ServiceController::class, 'getProviderServiceList']);
 

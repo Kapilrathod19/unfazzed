@@ -1135,6 +1135,62 @@ class UserController extends Controller
         return comman_custom_response($response);
     }
 
+    public function addProviderCategory(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $request->validate([
+            'category_id' => 'required'
+        ]);
+
+        $category_ids = $request->category_id;
+        
+        if (is_string($category_ids)) {
+            $decoded = json_decode($category_ids, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $category_ids = $decoded;
+            } elseif (strpos($category_ids, ',') !== false) {
+                $category_ids = explode(',', $category_ids);
+            } else {
+                $category_ids = [$category_ids];
+            }
+        }
+        
+        $category_ids = array_filter(array_map('intval', (array) $category_ids));
+
+        if (!empty($category_ids)) {
+            $user->categories()->syncWithoutDetaching($category_ids);
+        }
+
+        return comman_message_response(__('messages.save_form', ['form' => __('messages.category')]), 200);
+    }
+
+    public function deleteProviderCategory(Request $request)
+    {
+        $user = auth()->user();
+        
+        if (!$user || !($user->hasRole('provider') || $user->user_type == 'provider')) {
+            return comman_message_response(__('messages.user_not_found'), 400);
+        }
+
+        $request->validate([
+            'category_id' => 'required'
+        ]);
+
+        $category_id = $request->category_id;
+
+        if ($user->categories()->where('category_id', $category_id)->exists()) {
+            $user->categories()->detach($category_id);
+            return comman_message_response(__('messages.msg_deleted', ['name' => __('messages.category')]), 200);
+        }
+
+        return comman_message_response(__('messages.no_record_found'), 400);
+    }
+
     public function getProviderZones(Request $request)
     {
         $user = auth()->user();
