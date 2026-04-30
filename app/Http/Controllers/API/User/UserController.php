@@ -278,6 +278,10 @@ class UserController extends Controller
             $user = Auth::user();
             if ($user->status == 0) {
                 Auth::logout();
+                if (in_array($user->user_type, ['provider', 'handyman'])) {
+                    return comman_message_response(__('messages.pending_approval', [], 'en', 'Your account is pending for admin approval.'), 401);
+                }
+                return comman_message_response(__('messages.deactivate'), 401);
             }
             if (request('loginfrom') === 'vue-app') {
                 if ($user->user_type != 'user') {
