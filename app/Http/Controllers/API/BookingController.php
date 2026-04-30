@@ -271,6 +271,76 @@ class BookingController extends Controller
         return comman_custom_response($response);
     }
 
+    public function getBookingDetailByGet(Request $request)
+    {
+        $id = $request->booking_id;
+        
+        if (empty($id)) {
+            return comman_message_response('Booking ID is required', 400);
+        }
+
+        $booking_data = Booking::with('customer', 'handymanAdded', 'provider', 'service', 'bookingRating', 'bookingPostJob', 'bookingAddonService', 'bookingPackage', 'payment')->where('id', $id)->first();
+
+        if ($booking_data == null) {
+            $message = __('messages.booking_not_found');
+            return comman_message_response($message, 400);
+        }
+        
+        $latest_payment = Payment::where('booking_id', $id)->orderBy('id', 'desc')->first();
+        $booking_data->payment = $latest_payment ?? null;
+
+        $booking_detail = new BookingDetailResource($booking_data);
+
+        $rating_data = BookingRatingResource::collection($booking_detail->bookingRating->take(5));
+        $service = new ServiceResource($booking_detail->service);
+        $customer = new UserResource($booking_detail->customer);
+        $provider_data = new UserResource($booking_detail->provider);
+        $handyman_data = HandymanResource::collection($booking_detail->handymanAdded);
+
+        $customer_review = null;
+        if ($request->customer_id != null) {
+            $customer_review = BookingRating::where('customer_id', $request->customer_id)->where('service_id', $booking_detail->service_id)->where('booking_id', $id)->first();
+            if (!empty($customer_review)) {
+                $customer_review = new BookingRatingResource($customer_review);
+            }
+        }
+
+        if (auth()->check()) {
+            $auth_user = auth()->user();
+            if (count($auth_user->unreadNotifications) > 0) {
+                $auth_user->unreadNotifications->where('data.id', $id)->markAsRead();
+            }
+        }
+        
+        $booking_activity = BookingActivity::where('booking_id', $id)->orderBy('id', 'asc')->get();
+        $serviceProof = ServiceProofResource::collection(ServiceProof::with('service', 'handyman', 'booking')->where('booking_id', $id)->get());
+        $post_job_object = null;
+        if ($booking_data->type == 'user_post_job') {
+            $post_job_object = new PostJobRequestResource($booking_data->bookingPostJob);
+        }
+
+        $bookingpackage = $booking_data->bookingPackage;
+        if ($bookingpackage !== null) {
+            $mediaUrl = $bookingpackage->package->getFirstMedia('package_attachment')?->getUrl();
+            $bookingpackage->package_image = $mediaUrl ?? asset('images/default.png');
+        }
+
+        $response = [
+            'booking_detail'    => $booking_detail,
+            'service'           => $service,
+            'customer'          => $customer,
+            'booking_activity'  => $booking_activity,
+            'rating_data'       => $rating_data,
+            'handyman_data'     => $handyman_data,
+            'provider_data'     => $provider_data,
+            'coupon_data'       => $booking_detail->couponAdded,
+            'customer_review'   => $customer_review,
+            'service_proof'     => $serviceProof,
+            'post_request_detail' => $post_job_object,
+        ];
+        return comman_custom_response($response);
+    }
+
     public function saveBookingRating(Request $request)
     {
 

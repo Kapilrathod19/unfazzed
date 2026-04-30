@@ -93,6 +93,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('admin-dashboard', [API\DashboardController::class, 'adminDashboard']);
     Route::get('booking-list', [API\BookingController::class, 'getBookingList']);
     Route::post('booking-detail', [API\BookingController::class, 'getBookingDetail']);
+    Route::get('booking-detail', [API\BookingController::class, 'getBookingDetailByGet']);
     Route::post('save-booking-rating', [API\BookingController::class, 'saveBookingRating']);
     Route::post('delete-booking-rating', [API\BookingController::class, 'deleteBookingRating']);
     Route::get('get-user-ratings', [API\BookingController::class, 'getUserRatings']);
