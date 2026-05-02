@@ -149,7 +149,7 @@ class ProviderDocumentController extends Controller
         if ($providerdocument != auth()->user()->id && !auth()->user()->hasRole(['admin', 'demo_admin'])) {
             return redirect(route('home'))->withErrors(trans('messages.demo_permission_denied'));
         }
-        $providerdata = User::with('providerDocument')->where('user_type','provider')->where('id',$providerdocument)->first();
+        $providerdata = User::with('providerDocument')->whereIn('user_type',['provider', 'handyman'])->where('id',$providerdocument)->first();
         $provider_document = ProviderDocument::find($id);
         $pageTitle = trans('messages.update_form_title',['form'=>trans('messages.providerdocument')]);
 
@@ -214,7 +214,7 @@ class ProviderDocumentController extends Controller
         }
         $providerdata = User::with(['providerDocument' => function ($query) {
             $query->withTrashed();
-        }])->where('user_type', 'provider')->where('id', $id)->first();
+        }])->whereIn('user_type', ['provider', 'handyman'])->where('id', $id)->first();
 
         $filter = [
             'is_verified' => $request->is_verified,

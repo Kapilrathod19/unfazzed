@@ -5,7 +5,11 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
   </head>
   <div class="container-fluid">
-    @include('partials._provider')
+    @if($providerdata->user_type == 'handyman')
+        @include('partials._handyman',['handymandata' => $providerdata])
+    @else
+        @include('partials._provider')
+    @endif
     <div class="row">
       <div class="col-lg-12">
         <div class="card card-block card-stretch">

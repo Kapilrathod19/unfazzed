@@ -12,6 +12,9 @@
         <li class="nav-item {{request()->routeIs('handymanpayout.show') ? 'active' : ''}}">
             <a class="nav-link" href="{{ route('handymanpayout.show',$handymandata->id) }}">{{__('messages.list_form_title',['form' => __('messages.provider_payout')])}}</a>
         </li>
+        <li class="nav-item {{request()->routeIs('providerdocument.show') ? 'active' : ''}}">
+            <a class="nav-link" href="{{ route('providerdocument.show',$handymandata->id) }}">{{__('messages.list_form_title',['form' => __('messages.document')])}}</a>
+        </li>
        
     </ul>
 </div>

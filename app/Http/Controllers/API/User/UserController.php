@@ -120,7 +120,7 @@ class UserController extends Controller
 
 
             if (
-                $user->user_type === 'provider' &&
+                in_array($user->user_type, ['provider', 'handyman']) &&
                 $request->has('document_id') &&
                 is_array($request->document_id)
             ) {
