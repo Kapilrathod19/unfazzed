@@ -223,6 +223,10 @@ class BookingController extends Controller
         $service = new ServiceResource($booking_detail->service);
         $customer = UserResource::make($booking_detail->customer);
         $provider_data = UserResource::make($booking_detail->provider);
+        $provider_review = HandymanRating::where('booking_id', $id)->where('handyman_id', $booking_detail->provider_id)->first();
+        if ($provider_review) {
+            $provider_data = collect($provider_data)->put('handyman_review', new HandymanRatingResource($provider_review));
+        }
         $handyman_data = HandymanResource::collection($booking_detail->handymanAdded);
 
         $customer_review = null;
@@ -295,6 +299,10 @@ class BookingController extends Controller
         $service = new ServiceResource($booking_detail->service);
         $customer = UserResource::make($booking_detail->customer);
         $provider_data = UserResource::make($booking_detail->provider);
+        $provider_review = HandymanRating::where('booking_id', $id)->where('handyman_id', $booking_detail->provider_id)->first();
+        if ($provider_review) {
+            $provider_data = collect($provider_data)->put('handyman_review', new HandymanRatingResource($provider_review));
+        }
         $handyman_data = HandymanResource::collection($booking_detail->handymanAdded);
 
         $customer_review = null;
