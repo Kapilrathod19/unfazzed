@@ -608,32 +608,38 @@ class BookingController extends Controller
     }
 
     // Retrieve matched providers for notification broadcasting
-    $serviceId = $service_data->id;
     $categoryId = $service_data->category_id ?? null;
-    $zoneIds = \App\Models\ServiceZoneMapping::where('service_id', $serviceId)->pluck('zone_id')->toArray();
-    $matchingProviderIds = \App\Models\User::query()
-    ->where('user_type', 'provider')
-    ->where('status', 1)
-    
-    // Provider supports this CATEGORY
-    ->whereHas('categories', function ($q) use ($categoryId) {
-        $q->where('category_id', $categoryId);
-    })
+    $bookingZoneId = $result->zone_id;
 
-    // Provider belongs to BOOKING ZONE
-    ->whereHas('providerZones', function ($q) use ($zoneIds) {
-        $q->whereIn('zone_id', $zoneIds);
-    })
+    $matchingProviders = User::query()
+        ->where('user_type', 'provider')
+        ->where('status', 1)
+        
+        // Provider supports this CATEGORY
+        ->whereHas('categories', function ($q) use ($categoryId) {
+            $q->where('category_id', $categoryId);
+        });
 
-    ->pluck('id')
-    ->toArray();
+    // Provider belongs to specific BOOKING ZONE (only if zone is determined)
+    if ($bookingZoneId) {
+        $matchingProviders->whereHas('providerZones', function ($q) use ($bookingZoneId) {
+            $q->where('zone_id', $bookingZoneId);
+        });
+    }
+
+    $matchingProviderIds = $matchingProviders->pluck('id')->toArray();    
+    // Log for debugging
+    \Log::info("Booking Save Match - Booking ID: {$result->id}, Zone ID: " . ($bookingZoneId ?? 'NULL') . ", Category ID: {$categoryId}, Matched Providers: " . implode(',', $matchingProviderIds));
+
     // Notification
-    $this->sendNotification([
-        'activity_type' => 'add_booking',
-        'booking_id' => $result->id,
-        'booking' => $result,
-        'provider_ids' => $matchingProviderIds
-    ]);
+    if (!empty($matchingProviderIds)) {
+        $this->sendNotification([
+            'activity_type' => 'add_booking',
+            'booking_id' => $result->id,
+            'booking' => $result,
+            'provider_ids' => $matchingProviderIds
+        ]);
+    }
 
     // -------------------------------------------
     // ADD COUPON MAPPING
