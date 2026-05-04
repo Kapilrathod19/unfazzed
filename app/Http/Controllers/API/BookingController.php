@@ -407,7 +407,7 @@ class BookingController extends Controller
             if (isset($data['status']) && ($data['status'] == 'in_progress')) {
                 if ($bookingdata->status == 'arrived') {
                     if (!isset($request->otp) || $request->otp != $bookingdata->otp) {
-                        return comman_message_response(__('Wrong OTP provided. Please ask the customer for the arrival code.'), 400);
+                        return comman_custom_response(['status' => false, 'message' => __('Wrong OTP provided. Please ask the customer for the arrival code.')], 400);
                     }
                     $data['otp'] = null; // Clear OTP after use
                 }
@@ -416,12 +416,12 @@ class BookingController extends Controller
             if (isset($data['status']) && $data['status'] == 'completed') {
                 if ($bookingdata->status == 'pending_approval') {
                     if (!isset($request->otp) || $request->otp != $bookingdata->otp) {
-                        return comman_message_response(__('Wrong OTP provided. Please ask the customer for the completion code.'), 400);
+                        return comman_custom_response(['status' => false, 'message' => __('Wrong OTP provided. Please ask the customer for the completion code.')], 400);
                     }
                     $data['otp'] = null; // Clear OTP after use
                 } else if ($setting && isset($setting->otp_verification) && $setting->otp_verification) {
                     if (!empty($bookingdata->otp) && (!isset($request->otp) || $request->otp != $bookingdata->otp)) {
-                         return comman_message_response(__('Order verification code is required. Please provide the OTP.'), 400);
+                         return comman_custom_response(['status' => false, 'message' => __('Order verification code is required. Please provide the OTP.')], 400);
                      }
                      $data['otp'] = null;
                 }
