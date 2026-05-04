@@ -578,12 +578,13 @@ class BookingController extends Controller
                     $xj = $polygon[$j]['lat'] ?? null; $yj = $polygon[$j]['lng'] ?? null;
                     if ($xi !== null && $yi !== null && $xj !== null && $yj !== null && ($yj - $yi) != 0) {
                         $intersect = (($yi > $effectiveLng) != ($yj > $effectiveLng))
-                            && ($effectiveLat < ($xi - $xj) * ($effectiveLng - $yi) / ($yj - $yi) + $xj);
+                            && ($effectiveLat < ($xj - $xi) * ($effectiveLng - $yi) / ($yj - $yi) + $xi);
                         if ($intersect) $inside = !$inside;
                     }
                 }
                 if ($inside) {
                     $data['zone_id'] = $zone->id;
+                    \Log::info("Zone Detected: {$zone->name} (ID: {$zone->id}) for Lat: {$effectiveLat}, Lng: {$effectiveLng}");
                     break;
                 }
             }
@@ -610,6 +611,7 @@ class BookingController extends Controller
     // Retrieve matched providers for notification broadcasting
     $categoryId = $service_data->category_id ?? null;
     $bookingZoneId = $result->zone_id;
+    \Log::info("Provider Match Debug - Service Category ID: " . ($categoryId ?? 'NULL') . ", Booking Zone ID: " . ($bookingZoneId ?? 'NULL'));
 
     $matchingProviders = User::query()
         ->where('user_type', 'provider')
@@ -617,13 +619,13 @@ class BookingController extends Controller
         
         // Provider supports this CATEGORY
         ->whereHas('categories', function ($q) use ($categoryId) {
-            $q->where('category_id', $categoryId);
+            $q->where('categories.id', $categoryId);
         });
 
     // Provider belongs to specific BOOKING ZONE (only if zone is determined)
     if ($bookingZoneId) {
         $matchingProviders->whereHas('providerZones', function ($q) use ($bookingZoneId) {
-            $q->where('zone_id', $bookingZoneId);
+            $q->where('service_zones.id', $bookingZoneId);
         });
     }
 

@@ -545,10 +545,10 @@ class BookingController extends Controller
                         ->where('status', 1)
                         ->where('id', '!=', auth()->id())
                         ->whereHas('categories', function ($q) use ($categoryId) {
-                            $q->where('category_id', $categoryId);
+                            $q->where('categories.id', $categoryId);
                         })
                         ->whereHas('providerZones', function ($q) use ($zoneId) {
-                            $q->where('zone_id', $zoneId);
+                            $q->where('service_zones.id', $zoneId);
                         })
                         ->pluck('id')
                         ->toArray();
