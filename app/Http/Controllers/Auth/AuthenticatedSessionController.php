@@ -45,6 +45,12 @@ class AuthenticatedSessionController extends Controller
             return redirect()->back()->withErrors(['message' => __('auth.invalid_user_type')]);
         }
 
+        // Restrict admin portal login to admin and demo_admin
+        if (!in_array($user->user_type, ['admin', 'demo_admin'])) {
+            Auth::logout();
+            return redirect()->back()->withErrors(['message' => __('auth.unauthorized')]);
+        }
+
         // Admin or other login
         return redirect(RouteServiceProvider::HOME)
             ->with('success', __('auth.login_success'));
