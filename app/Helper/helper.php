@@ -2023,6 +2023,7 @@ function  getPaymentMethodkey($type)
     switch ($type) {
 
         case 'stripe':
+        case 'razorPay':
 
             $pyament_gateway_data = $pyament_gateway->where('type', $type)->first();
 

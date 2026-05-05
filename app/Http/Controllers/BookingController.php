@@ -1287,6 +1287,7 @@ class BookingController extends Controller
 
         switch ($data['payment_type']) {
             case 'stripe':
+            case 'razorPay':
                 $data['payment_geteway_data'] = getPaymentMethodkey($data['payment_type']);
                 break;
 
