@@ -22,6 +22,7 @@ use App\Traits\NotificationTrait;
 use App\Traits\EarningTrait;
 
 use App\Models\ServiceAddon;
+use App\Models\ServiceOption;
 use App\Models\BookingRating;
 use App\Models\Setting;
 use App\Models\Country;
@@ -699,6 +700,23 @@ class BookingController extends Controller
     }
 
     // -------------------------------------------
+    // SERVICE OPTIONS
+    // -------------------------------------------
+    if (!empty($request->service_option_id)) {
+        foreach ($request->service_option_id as $option) {
+            $optionModel = ServiceOption::find($option);
+            if ($optionModel) {
+                $result->bookingServiceOption()->create([
+                    'booking_id' => $result->id,
+                    'service_option_id' => $optionModel->id,
+                    'name' => $optionModel->name,
+                    'price' => $optionModel->price,
+                ]);
+            }
+        }
+    }
+
+    // -------------------------------------------
     // BOOKING PACKAGE
     // -------------------------------------------
     if (!empty($request->booking_package)) {
@@ -713,6 +731,12 @@ class BookingController extends Controller
             'price' => $bp['price'],
         ]);
     }
+
+    // -------------------------------------------
+    // RECALCULATE TOTAL AMOUNT
+    // -------------------------------------------
+    $result->total_amount = $result->getTotalValue();
+    $result->update();
 
     // -------------------------------------------
     // FINAL RESPONSE

@@ -92,6 +92,7 @@ class BookingDetailResource extends JsonResource
             'final_coupon_discount_amount'=> $this->final_coupon_discount_amount,
             'txn_id' => optional($this->payment)->txn_id ?? null,
             'BookingAddonService' => BookingServiceAddonResource::collection($this->bookingAddonService),
+            'BookingServiceOption' => BookingServiceOptionResource::collection($this->bookingServiceOption),
             'cancellation_charge_hours' => isset($serviceconfig->cancellation_charge_hours) ?  (double)$serviceconfig->cancellation_charge_hours : 0,
             'cancellationcharges' => isset($serviceconfig->cancellation_charge_amount) ?  (double)$serviceconfig->cancellation_charge_amount : 0,
             'cancellation_charge_amount' => $cacellationcharges,

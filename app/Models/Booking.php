@@ -110,6 +110,11 @@ class Booking extends Model
         return $this->hasMany(BookingHandymanMapping::class, 'booking_id', 'id')->with(['handyman']);
     }
 
+    public function bookingServiceOption()
+    {
+        return $this->hasMany(BookingServiceOptionMapping::class, 'booking_id', 'id');
+    }
+
     public function bookingActivity()
     {
         return $this->hasMany(BookingActivity::class, 'booking_id', 'id');
@@ -270,6 +275,7 @@ class Booking extends Model
         } else {
             $serviceTotalPrice += ($this->amount) *  (!empty($this->quantity) ? $this->quantity : 1);
         }
+        $serviceTotalPrice += $this->getServiceOptionValue();
         return $serviceTotalPrice;
     }
     public function getDiscountValue(): float
@@ -311,7 +317,7 @@ class Booking extends Model
     }
     public function getTaxesValue(): float
     {
-        $total = $this->getSubTotalValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue();
+        $total = $this->getSubTotalValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
 
         // $total = $this->getSubTotalValue() ;
         $taxValue = 0;
@@ -329,19 +335,29 @@ class Booking extends Model
     }
     public function getTotalValue(): float
     {
-        $grandTotalAmount =  $this->getSubTotalValue()  + $this->getTaxesValue() + $this->getExtraChargeValue();
+        $grandTotalAmount =  $this->getSubTotalValue()  + $this->getTaxesValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
 
         return $grandTotalAmount;
     }
     public function getServiceAddonValue(): float
     {
         $addonPrice = 0;
-        if (!empty($this->bookingAddonService)) {
+        if ($this->bookingAddonService->count() > 0) {
             foreach ($this->bookingAddonService as $charge) {
                 $addonPrice += $charge['price'];
             }
         }
         return $addonPrice;
+    }
+    public function getServiceOptionValue(): float
+    {
+        $optionPrice = 0;
+        if ($this->bookingServiceOption->count() > 0) {
+            foreach ($this->bookingServiceOption as $charge) {
+                $optionPrice += $charge['price'];
+            }
+        }
+        return $optionPrice;
     }
 
     public function commissionsdata()
