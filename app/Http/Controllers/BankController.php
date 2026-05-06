@@ -186,7 +186,7 @@ class BankController extends Controller
             //     }
             // }    
         }
-        $result = Bank::updateOrCreate(['id' => $data['id']], $data);
+        $result = Bank::updateOrCreate(['id' => $request->id], $data);
         if ($request->is('api/*')) {
             if ($request->has('attachment_count')) {
                 for ($i = 0; $i < $request->attachment_count; $i++) {
@@ -206,9 +206,9 @@ class BankController extends Controller
             $message = trans('messages.save_form', ['form' => trans('messages.bank')]);
         }
 
-        $providerdata = User::with('providerbank')->where('id',$result->proider_id)->first();
+        $providerdata = User::with('providerbank')->where('id', $result->provider_id)->first();
 
-        $user_type=$providerdata->user_type ?? null;
+        $user_type = $providerdata->user_type ?? null;
 
         if($request->is('api/*')){
             return response()->json(['status' => true, 'data'=>$data, 'message' => $message]);
