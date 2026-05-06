@@ -97,6 +97,19 @@ class User extends Authenticatable implements HasMedia
     {
         parent::boot();
 
+        static::created(function ($user) {
+            if (in_array($user->user_type, ['provider', 'handyman', 'user'])) {
+                Wallet::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'title' => $user->display_name . ' Wallet',
+                        'amount' => 0,
+                        'status' => 1
+                    ]
+                );
+            }
+        });
+
 
         static::deleted(function ($row) {
             switch ($row->user_type) {
