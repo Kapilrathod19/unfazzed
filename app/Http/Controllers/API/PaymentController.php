@@ -19,10 +19,11 @@ use App\Models\Service;
 use App\Models\Setting;
 use DB;
 use App\Models\CommissionEarning;
+use App\Traits\EarningTrait;
 
 class PaymentController extends Controller
 {
-    use NotificationTrait;
+    use NotificationTrait, EarningTrait;
 
 
     public function savePayment(Request $request)
@@ -62,7 +63,8 @@ class PaymentController extends Controller
         $booking->update();
 
         if($booking->status == 'completed' && $result->payment_status=='paid'){
-
+            $booking->setRelation('payment', $result);
+            $this->addBookingCommission($booking);
             CommissionEarning::where('booking_id',$booking->id)->update(['commission_status'=>'unpaid']);
         }
         $status_code = 200;

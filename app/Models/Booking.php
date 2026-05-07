@@ -270,12 +270,16 @@ class Booking extends Model
     {
         $serviceTotalPrice = 0;
 
+        // If user selected Add-ons or Options, the base service price becomes 0
+        if ($this->getServiceOptionValue() > 0 || $this->getServiceAddonValue() > 0) {
+            return 0;
+        }
+
         if ($this->service !== null && $this->service->type == 'hourly') {
             $serviceTotalPrice += $this->getHourlyPrice();
         } else {
-            $serviceTotalPrice += ($this->amount) *  (!empty($this->quantity) ? $this->quantity : 1);
+            $serviceTotalPrice += ($this->amount) * (!empty($this->quantity) ? $this->quantity : 1);
         }
-        $serviceTotalPrice += $this->getServiceOptionValue();
         return $serviceTotalPrice;
     }
     public function getDiscountValue(): float
@@ -335,7 +339,7 @@ class Booking extends Model
     }
     public function getTotalValue(): float
     {
-        $grandTotalAmount =  $this->getSubTotalValue()  + $this->getTaxesValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
+        $grandTotalAmount = $this->getSubTotalValue() + $this->getTaxesValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
 
         return $grandTotalAmount;
     }

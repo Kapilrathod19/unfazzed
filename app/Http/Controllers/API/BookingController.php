@@ -658,6 +658,22 @@ class BookingController extends Controller
         }
 
 
+        // ------------------------------------------------------------------
+        // ALWAYS RECALCULATE SNAPSHOTS BEFORE SAVING (Important for Admin Earnings)
+        // ------------------------------------------------------------------
+        $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
+        $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
+        $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
+        
+        $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getExtraChargeValue();
+        $data['final_sub_total'] = $subtotal;
+        
+        $tax = $bookingdata->getTaxesValue();
+        $data['final_total_tax'] = round($tax, $digitafter_decimal_point);
+        
+        $totalamount = $subtotal + $tax;
+        $data['total_amount'] = round($totalamount, $digitafter_decimal_point);
+
         $bookingdata->update($data);
         if ($bookingdata && $bookingdata->status === 'completed') {
             $this->addBookingCommission($bookingdata);

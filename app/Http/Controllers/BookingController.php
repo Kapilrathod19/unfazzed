@@ -282,7 +282,8 @@ class BookingController extends Controller
                 });
             })
             ->editColumn('total_amount', function ($query) {
-                return $query->total_amount ? getPriceFormat($query->total_amount) : '-';
+                $total = $query->total_amount > 0 ? $query->total_amount : $query->getTotalValue();
+                return $total > 0 ? getPriceFormat($total) : '-';
             })
 
             ->addColumn('action', function ($booking) {
@@ -505,9 +506,10 @@ class BookingController extends Controller
     }
 
     $service_data = Service::find($data['service_id']);
-    // $data['provider_id'] = !empty($data['provider_id'])
-    //     ? $data['provider_id']
-    //     : ($service_data->provider_id ?? null);
+    if ($service_data) {
+        $data['amount'] = $service_data->price;
+        $data['discount'] = $service_data->discount;
+    }
     $data['provider_id'] = null;
 
     if ($request->has('tax') && $request->tax != null) {
@@ -733,9 +735,19 @@ class BookingController extends Controller
     }
 
     // -------------------------------------------
-    // RECALCULATE TOTAL AMOUNT
+    // RECALCULATE SNAPSHOTS (Important for Admin Earnings)
     // -------------------------------------------
-    $result->total_amount = $result->getTotalValue();
+    $result->final_total_service_price = $result->getServiceTotalPrice();
+    $result->final_discount_amount = $result->getDiscountValue();
+    $result->final_coupon_discount_amount = $result->getCouponDiscountValue();
+    
+    $subtotal = $result->getSubTotalValue() + $result->getServiceAddonValue() + $result->getExtraChargeValue();
+    $result->final_sub_total = $subtotal;
+    
+    $tax = $result->getTaxesValue();
+    $result->final_total_tax = $tax;
+    
+    $result->total_amount = $subtotal + $tax;
     $result->update();
 
     // -------------------------------------------

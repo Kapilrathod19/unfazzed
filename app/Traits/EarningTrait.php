@@ -5,6 +5,8 @@ namespace App\Traits;
 use App\Models\User;
 use App\Models\ProviderPayout;
 use App\Models\CommissionEarning;
+use App\Models\Wallet;
+use App\Models\WalletHistory;
 
 
 trait EarningTrait {
@@ -173,6 +175,24 @@ trait EarningTrait {
 
     public function addBookingCommission($bookingdata)
     {
+        // ------------------------------------------------------------------
+        // RE-SYNC SNAPSHOTS IF MISSING (To fix old bookings or sync issues)
+        // ------------------------------------------------------------------
+        if ($bookingdata->final_sub_total <= 0 || $bookingdata->total_amount <= 0) {
+            $bookingdata->final_total_service_price = $bookingdata->getServiceTotalPrice();
+            $bookingdata->final_discount_amount = $bookingdata->getDiscountValue();
+            $bookingdata->final_coupon_discount_amount = $bookingdata->getCouponDiscountValue();
+            
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getExtraChargeValue();
+            $bookingdata->final_sub_total = $subtotal;
+            
+            $tax = $bookingdata->getTaxesValue();
+            $bookingdata->final_total_tax = $tax;
+            
+            $bookingdata->total_amount = $subtotal + $tax > 0 ? $subtotal + $tax : $bookingdata->getTotalValue();
+            $bookingdata->save();
+        }
+
         $payment = $bookingdata->payment;
         $provider_earning = 0;
         $handyman_earning = 0;
@@ -183,19 +203,25 @@ trait EarningTrait {
         }
 
         if ($bookingdata->handymanAdded) {
-            $handyman_commission_data = $this->getHandymanBookingCommission($bookingdata, $payment,$provider_earning);
+            $handyman_commission_data = $this->getHandymanBookingCommission($bookingdata, $payment, $provider_earning);
             foreach ($handyman_commission_data as $commission_data) {
                 $handyman_earning += $this->saveCommission($commission_data);
             }
-            if($handyman_earning > 0){
-                $provider_commission_data = $this->getProviderBookingCommission($bookingdata, $payment,$handyman_earning);
+            if ($handyman_earning > 0) {
+                $provider_commission_data = $this->getProviderBookingCommission($bookingdata, $payment, $handyman_earning);
                 $provider_earning = $this->saveCommission($provider_commission_data);
             }
         }
 
+        // If provider earning is still 0 (e.g. no handyman but provider exists), ensure it's saved
+        if ($provider_earning == 0 && $bookingdata->provider_id) {
+            $provider_commission_data = $this->getProviderBookingCommission($bookingdata, $payment, 0);
+            $provider_earning = $this->saveCommission($provider_commission_data);
+        }
+
         $payment_status = $payment && $payment->payment_status == 'paid' ? 'unpaid' : 'pending';
 
-        $admin_earning = $bookingdata->final_sub_total - $provider_earning - $handyman_earning;
+        $admin_earning = $bookingdata->total_amount - $provider_earning - $handyman_earning;
         $admin_commission_data = [
             'employee_id'       => User::where('user_type', 'admin')->value('id'),
             'booking_id'        => $bookingdata->id,
@@ -205,37 +231,81 @@ trait EarningTrait {
             'commissions'       => null
         ];
         $this->saveCommission($admin_commission_data);
+
+        // ------------------------------------------------------------------
+        // WALLET UPDATE LOGIC (Add earning to Provider/Handyman Wallet)
+        // ------------------------------------------------------------------
+        if ($payment_status === 'unpaid') {
+            // Update Provider Wallet
+            if ($provider_earning > 0) {
+                $this->updateUserWallet($bookingdata->provider_id, $provider_earning, $bookingdata->id, 'provider');
+            }
+            // Update Handyman Wallet
+            if ($handyman_earning > 0) {
+                foreach ($bookingdata->handymanAdded as $handyman) {
+                    // Note: In multi-handyman, handyman_earning is the sum. 
+                    // This logic assumes each handyman gets their share correctly calculated in getHandymanBookingCommission.
+                    // For now, we assume saveCommission handled the individual splits.
+                    // We need to fetch the actual split for this specific handyman.
+                    $specific_commission = CommissionEarning::where('booking_id', $bookingdata->id)
+                        ->where('employee_id', $handyman->handyman_id)
+                        ->where('user_type', 'handyman')
+                        ->value('commission_amount');
+                    
+                    if ($specific_commission > 0) {
+                        $this->updateUserWallet($handyman->handyman_id, $specific_commission, $bookingdata->id, 'handyman');
+                    }
+                }
+            }
+        }
     }
 
-    // protected function saveCommission($commission_data)
-    // {
-    //     $commission = new CommissionEarning;
-    //     $commission->fill($commission_data);
-    //     $commission->save();
-    //     return $commission->commission_amount;
-    // }
+    /**
+     * Helper to update user wallet and record history
+     */
+    protected function updateUserWallet($userId, $amount, $bookingId, $userType)
+    {
+        $wallet = Wallet::firstOrCreate(
+            ['user_id' => $userId],
+            ['title' => User::find($userId)->display_name . ' Wallet', 'amount' => 0, 'status' => 1]
+        );
+
+        // Prevent double adding by checking history
+        $exists = WalletHistory::where('user_id', $userId)
+            ->where('activity_message', 'LIKE', '%#' . $bookingId . '%')
+            ->where('activity_type', 'booking_earning')
+            ->exists();
+
+        if (!$exists) {
+            $wallet->amount += $amount;
+            $wallet->save();
+
+            $historyData = [
+                'user_id' => $userId,
+                'activity_type' => 'booking_earning',
+                'activity_message' => __('messages.booking_earning_message', ['id' => $bookingId, 'amount' => getPriceFormat($amount)]),
+                'datetime' => date('Y-m-d H:i:s'),
+                'activity_data' => json_encode([
+                    'booking_id' => $bookingId,
+                    'amount' => $amount,
+                    'transaction_type' => 'Credit'
+                ])
+            ];
+            WalletHistory::create($historyData);
+        }
+    }
 
     protected function saveCommission($commission_data)
     {
-        // Check if a commission already exists for the booking and user type
-        $commission = CommissionEarning::where('booking_id', $commission_data['booking_id'])
-                                    ->where('user_type', $commission_data['user_type'])
-                                    ->where('employee_id', $commission_data['employee_id'])
-                                    ->first();
-
-        // If commission exists, update it; otherwise, create a new one
-        if ($commission) {
-            $commission->fill($commission_data);  // Update the existing commission data
-        } else {
-            $commission = new CommissionEarning;
-            $commission->fill($commission_data);  // Create a new commission
-        }
-
-        // Save or update the commission record
-        $commission->save();
-
-        // Return the commission amount for further processing
-        return $commission->commission_amount;
+        $res = CommissionEarning::updateOrCreate(
+            [
+                'booking_id' => $commission_data['booking_id'],
+                'user_type' => $commission_data['user_type'],
+                'employee_id' => $commission_data['employee_id']
+            ],
+            $commission_data
+        );
+        return $res->commission_amount;
     }
 
 
