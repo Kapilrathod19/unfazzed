@@ -284,7 +284,8 @@ class Booking extends Model
     }
     public function getDiscountValue(): float
     {
-        $discount = $this->bookingPackage == null && $this->discount != 0 ? (($this->getServiceTotalPrice() / 100) * $this->discount) : 0;
+        $baseAmount = $this->getServiceTotalPrice() + $this->getServiceOptionValue() + $this->getServiceAddonValue();
+        $discount = $this->bookingPackage == null && $this->discount != 0 ? (($baseAmount / 100) * $this->discount) : 0;
 
         return $discount;
     }
@@ -292,10 +293,11 @@ class Booking extends Model
     {
         $couponAmount = 0.0;
         if ($this->couponAdded != null) {
+            $baseAmount = $this->getServiceTotalPrice() + $this->getServiceOptionValue() + $this->getServiceAddonValue();
             if ($this->couponAdded->discount_type == 'fixed') {
                 $couponAmount = $this->couponAdded->discount;
             } else {
-                $couponAmount = ($this->getServiceTotalPrice() * $this->couponAdded->discount) / 100;
+                $couponAmount = ($baseAmount * $this->couponAdded->discount) / 100;
             }
         }
 
@@ -303,8 +305,8 @@ class Booking extends Model
     }
     public function getSubTotalValue(): float
     {
-        $subTotal = 0;
-        $subTotal = $this->getServiceTotalPrice() - $this->getDiscountValue() - $this->getCouponDiscountValue();
+        $baseAmount = $this->getServiceTotalPrice() + $this->getServiceOptionValue() + $this->getServiceAddonValue();
+        $subTotal = $baseAmount - $this->getDiscountValue() - $this->getCouponDiscountValue();
 
         return $subTotal;
     }
@@ -321,7 +323,7 @@ class Booking extends Model
     }
     public function getTaxesValue(): float
     {
-        $total = $this->getSubTotalValue() + $this->getExtraChargeValue() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
+        $total = $this->getSubTotalValue() + $this->getExtraChargeValue();
 
         // $total = $this->getSubTotalValue() ;
         $taxValue = 0;

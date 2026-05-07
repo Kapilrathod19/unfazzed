@@ -137,6 +137,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('provideraddress-delete/{id}', [App\Http\Controllers\ProviderAddressMappingController::class, 'destroy']);
     Route::post('save-handyman-rating', [API\BookingController::class, 'saveHandymanRating']);
     Route::post('delete-handyman-rating', [API\BookingController::class, 'deleteHandymanRating']);
+    Route::get('get-user-handyman-ratings', [API\BookingController::class, 'getMyHandymanRatings']);
 
 
     Route::get('provider-document-list', [API\ProviderDocumentController::class, 'getProviderDocumentList']);

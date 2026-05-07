@@ -491,12 +491,12 @@ class BookingController extends Controller
                     $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
                     $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
                     $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
-                    $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue();;
+                    $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue();
                     $data['final_sub_total'] = $subtotal;
                     $tax = round($bookingdata->getTaxesValue(), $digitafter_decimal_point);
                     $data['final_total_tax'] = $tax;
                     // without include extrachage tax caculation
-                    $totalamount =   $subtotal + $tax;;
+                    $totalamount =   $subtotal + $tax;
                     $data['total_amount'] = round($totalamount, $digitafter_decimal_point);
                 }
             }
@@ -510,12 +510,12 @@ class BookingController extends Controller
             $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
             $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
             $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue();
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue();
             $data['final_sub_total'] = $subtotal;
             $tax = round($bookingdata->getTaxesValue(), $digitafter_decimal_point);
             $data['final_total_tax'] = $tax;
             // without include extrachage tax caculation
-            $totalamount =   $subtotal + $tax;;
+            $totalamount =   $subtotal + $tax;
             $data['total_amount'] = round($totalamount, $digitafter_decimal_point);
         }
         if ($bookingdata->status != $data['status']) {
@@ -642,7 +642,7 @@ class BookingController extends Controller
                 ];
                 $bookingdata->bookingExtraCharge()->insert($extra_charge);
             }
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getExtraChargeValue();
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue() + $bookingdata->getExtraChargeValue();
 
             // without include extrachage tax caculation
             $data['final_sub_total'] = $subtotal;
@@ -665,7 +665,7 @@ class BookingController extends Controller
         $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
         $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
         
-        $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getExtraChargeValue();
+        $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getExtraChargeValue();
         $data['final_sub_total'] = $subtotal;
         
         $tax = $bookingdata->getTaxesValue();
@@ -774,8 +774,41 @@ class BookingController extends Controller
 
         return response([
             'pagination' => [
-                'total_ratings' => $data->total(),
-                'per_page' => $data->perPage(5),
+                'total_items' => $data->total(),
+                'per_page' => $data->perPage(),
+                'currentPage' => $data->currentPage(),
+                'totalPages' => $data->lastPage(),
+                'from' => $data->firstItem(),
+                'to' => $data->lastItem(),
+                'next_page' => $data->nextPageUrl(),
+                'previous_page' => $data->previousPageUrl(),
+            ],
+            'data' => $data,
+        ]);
+    }
+
+    public function getMyHandymanRatings(Request $request)
+    {
+        $user = auth()->user();
+        $handymanratings = HandymanRating::where('customer_id', $user->id)->orderBy('id', 'desc');
+
+        $per_page = config('constant.PER_PAGE_LIMIT');
+        if ($request->has('per_page') && !empty($request->per_page)) {
+            if (is_numeric($request->per_page)) {
+                $per_page = $request->per_page;
+            }
+            if ($request->per_page === 'all') {
+                $per_page = $handymanratings->count();
+            }
+        }
+
+        $handymanratings = $handymanratings->paginate($per_page);
+        $data = HandymanRatingResource::collection($handymanratings);
+
+        return response([
+            'pagination' => [
+                'total_items' => $data->total(),
+                'per_page' => $data->perPage(),
                 'currentPage' => $data->currentPage(),
                 'totalPages' => $data->lastPage(),
                 'from' => $data->firstItem(),

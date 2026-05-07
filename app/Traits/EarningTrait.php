@@ -143,8 +143,8 @@ trait EarningTrait {
             if ($commissionData) {
                 if ($commissionData->type === 'percent') {
                     $handymanEarning = 0;
-                    if($provider_earning > 0){
-                        $handymanEarning += ($provider_earning * $commissionData->commission) / 100;
+                    if($booking->total_amount > 0){
+                        $handymanEarning += ($booking->total_amount * $commissionData->commission) / 100;
                     }
                     
                 } else {
@@ -183,7 +183,7 @@ trait EarningTrait {
             $bookingdata->final_discount_amount = $bookingdata->getDiscountValue();
             $bookingdata->final_coupon_discount_amount = $bookingdata->getCouponDiscountValue();
             
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getExtraChargeValue();
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue() + $bookingdata->getExtraChargeValue();
             $bookingdata->final_sub_total = $subtotal;
             
             $tax = $bookingdata->getTaxesValue();
@@ -242,11 +242,8 @@ trait EarningTrait {
             }
             // Update Handyman Wallet
             if ($handyman_earning > 0) {
+                $bookingdata->load('handymanAdded'); // Reload to ensure fresh data
                 foreach ($bookingdata->handymanAdded as $handyman) {
-                    // Note: In multi-handyman, handyman_earning is the sum. 
-                    // This logic assumes each handyman gets their share correctly calculated in getHandymanBookingCommission.
-                    // For now, we assume saveCommission handled the individual splits.
-                    // We need to fetch the actual split for this specific handyman.
                     $specific_commission = CommissionEarning::where('booking_id', $bookingdata->id)
                         ->where('employee_id', $handyman->handyman_id)
                         ->where('user_type', 'handyman')

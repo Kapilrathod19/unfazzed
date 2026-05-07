@@ -276,13 +276,25 @@ class ProviderPayoutController extends Controller
     ];
     $this->sendNotification($activity_data);
 
-    /* ================= WALLET PAYOUT ================= */
-    if ($payment_method === 'wallet') {
-        $wallet = Wallet::where('user_id', $provider_id)->first();
-        if ($wallet) {
-            $wallet->amount += $result->amount;
-            $wallet->save();
-        }
+    /* ================= WALLET DEBIT LOGIC ================= */
+    $wallet = Wallet::where('user_id', $provider_id)->first();
+    if ($wallet) {
+        $wallet->amount -= $result->amount;
+        $wallet->save();
+
+        // Record history for the debit
+        $historyData = [
+            'user_id' => $provider_id,
+            'activity_type' => 'payout_debit',
+            'activity_message' => __('messages.payout_debit_message', ['id' => $result->id, 'amount' => getPriceFormat($result->amount)]),
+            'datetime' => date('Y-m-d H:i:s'),
+            'activity_data' => json_encode([
+                'payout_id' => $result->id,
+                'amount' => $result->amount,
+                'transaction_type' => 'Debit'
+            ])
+        ];
+        \App\Models\WalletHistory::create($historyData);
     }
 
     /* ================= API RESPONSE ================= */

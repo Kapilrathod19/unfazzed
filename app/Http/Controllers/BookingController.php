@@ -741,7 +741,7 @@ class BookingController extends Controller
     $result->final_discount_amount = $result->getDiscountValue();
     $result->final_coupon_discount_amount = $result->getCouponDiscountValue();
     
-    $subtotal = $result->getSubTotalValue() + $result->getServiceAddonValue() + $result->getExtraChargeValue();
+    $subtotal = $result->getSubTotalValue() + $result->getExtraChargeValue();
     $result->final_sub_total = $subtotal;
     
     $tax = $result->getTaxesValue();
