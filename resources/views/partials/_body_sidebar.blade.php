@@ -137,7 +137,7 @@
             : null;
         $othersetting = $settings->has('OTHER_SETTING') ? json_decode($settings['OTHER_SETTING']->value) : null;
 
-        if (optional($servicesetting)->service_packages == 1) {
+        /* if (optional($servicesetting)->service_packages == 1) {
             $menu->services
                 ->add('<span>' . trans('messages.packages') . '</span>', [
                     'class' => 'sidebar-layout',
@@ -152,7 +152,7 @@
                 )
                 ->data('permission', 'servicepackage list')
                 ->link->attr(['class' => '']);
-        }
+        } */
 
         if (optional($servicesetting)->service_addons == 1) {
             $menu->services
@@ -191,7 +191,7 @@
             ->link->attr(['class' => '']);
 
 
-        if (auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'demo_admin' || auth()->user()->user_type == 'provider') {
+        /* if (auth()->user()->user_type == 'admin' || auth()->user()->user_type == 'demo_admin' || auth()->user()->user_type == 'provider') {
         $menu->services
             ->add(
                 '<span>' .
@@ -214,7 +214,7 @@
             ->data('permission', 'service list')
             ->link->attr(['class' => '']);
 
-        }
+        } */
         
         if (optional($servicesetting)->post_services == 1) {
             $menu
@@ -647,9 +647,9 @@
         $user = auth()->user();
         $isAdminOrProvider = $user && ($user->hasRole('admin') || $user->hasRole('provider')); // Check if user is admin or provider
 
-            $menu->add(__('messages.promotion'), ['class' => 'category-main']);
+            // $menu->add(__('messages.promotion'), ['class' => 'category-main']);
     // Display "Promotion" menu only for admin or provider
-    if ($user->hasRole('admin') || $user->hasRole('provider') || $user->hasRole('demo_admin')) {
+    /* if ($user->hasRole('admin') || $user->hasRole('provider') || $user->hasRole('demo_admin')) {
     $settings = \App\Models\Setting::where('type', 'provider-banner')->first();
     $data = $settings ? (is_array($settings->value) ? $settings->value : json_decode($settings->value, true)) : [];
     $promotionEnabled = $data['promotion_enable'] ?? 0;
@@ -672,7 +672,7 @@
     );
 }
 
-}
+} */
 
 
         $menu
