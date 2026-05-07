@@ -50,20 +50,42 @@ class CommonNotification extends Notification implements ShouldQueue
         $this->type = $type;
         $this->data = $data;
 
-        $userType = $data['user_type'];
+        $userType = strtolower($data['user_type'] ?? '');
+        
         $notifications = NotificationTemplate::where('type', $this->type)
             ->with('defaultNotificationTemplateMap')
             ->first();
-        $notify_data = NotificationTemplateContentMapping::where('template_id', $notifications->id)->get();
-        $templateData = $notify_data->where('user_type', $userType)->first();
-        $this->template_data = $templateData;
-        $templateDetail = $templateData->template_detail ?? null;
-        foreach ($this->data as $key => $value) {
-            $templateDetail = str_replace('[[ ' . $key . ' ]]', $this->data[$key], $templateDetail);
+
+        $templateData = null;
+        if ($notifications) {
+            $templateData = NotificationTemplateContentMapping::where('template_id', $notifications->id)
+                ->get()
+                ->filter(function($item) use ($userType) {
+                    return strtolower($item->user_type) == $userType;
+                })->first();
         }
-        $this->data['type'] = $templateData->subject ?? 'None';
-        $this->data['message'] = $templateDetail ?? __('messages.default_notification_body');
-        $this->appData = $notifications->channels;
+
+        $this->template_data = $templateData;
+        
+        $templateDetail = $templateData ? $templateData->template_detail : null;
+        $subject = $templateData ? $templateData->subject : null;
+
+        // Fallback to data provided in the trait if template or mapping is missing
+        $subject = $subject ?? $this->data['activity_type'] ?? $this->data['type'] ?? 'Notification';
+        $templateDetail = $templateDetail ?? $this->data['activity_message'] ?? $this->data['message'] ?? __('messages.default_notification_body');
+
+        // Replace placeholders in the message
+        if ($templateDetail) {
+            foreach ($this->data as $key => $value) {
+                if (is_scalar($value)) {
+                    $templateDetail = str_replace('[[ ' . $key . ' ]]', (string)$value, $templateDetail);
+                }
+            }
+        }
+
+        $this->data['type'] = $subject;
+        $this->data['message'] = $templateDetail;
+        $this->appData = ($notifications && $notifications->channels) ? $notifications->channels : [];
     }
 
     /**
