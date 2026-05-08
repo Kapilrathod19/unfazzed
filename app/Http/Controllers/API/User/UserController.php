@@ -729,6 +729,16 @@ class UserController extends Controller
             'email' => 'required|email',
         ]);
 
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => __("passwords.user"), 'status' => false], 406);
+        }
+
+        if (!in_array($user->user_type, ['handyman', 'provider'])) {
+            return response()->json(['message' => 'Only Handyman and Provider can reset their password.', 'status' => false], 403);
+        }
+
         $response = Password::sendResetLink(
             $request->only('email')
         );
