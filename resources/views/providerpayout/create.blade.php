@@ -21,7 +21,7 @@
                     <div class="row">
                         <div class="form-group col-md-4" id="payment_method_id">
                             {{ html()->label(trans('messages.method') . ' <span class="text-danger">*</span>', 'method')->class('form-control-label') }}
-                            {{ html()->select('payment_method', ['bank' => __('messages.bank'),'cash' => __('messages.cash'),'wallet' => __('messages.wallet'),], old('method'))->attributes(['id' => 'method', 'class' => 'form-select select2js', 'required']) }}
+                            {{ html()->select('payment_method', ['bank' => __('messages.bank'),'cash' => __('messages.cash')], old('method'))->attributes(['id' => 'method', 'class' => 'form-select select2js', 'required']) }}
                         </div>
                 
                         <div class="form-group col-md-4" id="select_bank">
