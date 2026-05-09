@@ -34,8 +34,8 @@ class UserRequest extends FormRequest
             'profile_image'  => 'nullable|mimetypes:image/jpeg,image/png,image/jpg,image/gif',
         ];
 
-        // Only validate documents if provider is registering
-        if ($this->input('user_type') === 'provider' && request()->is('api/*')) {
+        // Only validate documents if provider or handyman is registering
+        if (in_array($this->input('user_type'), ['provider', 'handyman']) && request()->is('api/*')) {
             $allDocIds = Documents::pluck('id')->toArray();
             $rules['document_id'] = ['nullable', 'array'];
             $rules['document_id.*'] = ['in:' . implode(',', $allDocIds)];
@@ -54,8 +54,7 @@ class UserRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Disabled document validation so you can test registration with pure JSON
-            /*
-            if ($this->input('user_type') === 'provider' && request()->is('api/*')) {
+            if (in_array($this->input('user_type'), ['provider', 'handyman']) && request()->is('api/*')) {
                 $submittedIds = (array) $this->input('document_id', []);
                 $requiredDocs = Documents::where('is_required', 1)->where('status', 1)->pluck('id')->toArray();
 
@@ -66,18 +65,15 @@ class UserRequest extends FormRequest
                     $validator->errors()->add('document_id', 'Missing required documents: ' . implode(', ', $docNames));
                 }
 
-                // 2. Check if file for required document ID is uploaded
+                // 2. Check if file for each document ID is uploaded
                 foreach ($submittedIds as $index => $docId) {
-                    if (in_array($docId, $requiredDocs)) {
-                        $fileKey = "provider_document_$index";
-                        if (!$this->hasFile($fileKey)) {
-                            $docName = Documents::where('id', $docId)->value('name') ?? "ID $docId";
-                            $validator->errors()->add($fileKey, "Missing file for required document: $docName");
-                        }
+                    $fileKey = "provider_document_$index";
+                    if (!$this->hasFile($fileKey)) {
+                        $docName = Documents::where('id', $docId)->value('name') ?? "ID $docId";
+                        $validator->errors()->add($fileKey, "Missing file for document: $docName");
                     }
                 }
             }
-            */
         });
     }
 
