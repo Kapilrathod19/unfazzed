@@ -44,8 +44,8 @@ class ServiceRequest extends FormRequest
 
         if (request()->has('options')) {
             $rules['options'] = 'array';
-            $rules['options.*.name'] = 'required|string';
-            $rules['options.*.price'] = 'required|numeric|min:0';
+            $rules['options.*.name'] = 'nullable|string';
+            $rules['options.*.price'] = 'nullable|numeric|min:0';
             $rules['options.*.image'] = 'nullable|image|mimes:jpeg,jpg,png,webp,gif';
         }
 

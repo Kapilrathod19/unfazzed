@@ -360,12 +360,12 @@
                                             <div class="option-row row mb-3 p-3 border rounded" data-index="{{ $index }}">
                                                 <input type="hidden" name="options[{{ $index }}][id]" value="{{ $optionId }}">
                                                 <div class="form-group col-md-4">
-                                                    {{ html()->label(__('messages.name') . ' <span class="text-danger">*</span>', "options[{$index}][name]")->class('form-control-label') }}
-                                                    {{ html()->text("options[{$index}][name]", $optionName)->placeholder(__('messages.name'))->class('form-control option-name')->required() }}
+                                                    {{ html()->label(__('messages.name'), "options[{$index}][name]")->class('form-control-label') }}
+                                                    {{ html()->text("options[{$index}][name]", $optionName)->placeholder(__('messages.name'))->class('form-control option-name') }}
                                                 </div>
                                                 <div class="form-group col-md-4">
-                                                    {{ html()->label(__('messages.price') . ' <span class="text-danger">*</span>', "options[{$index}][price]")->class('form-control-label') }}
-                                                    {{ html()->text("options[{$index}][price]", $optionPrice)->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$')->required() }}
+                                                    {{ html()->label(__('messages.price'), "options[{$index}][price]")->class('form-control-label') }}
+                                                    {{ html()->text("options[{$index}][price]", $optionPrice)->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$') }}
                                                 </div>
                                                 <div class="form-group col-md-3">
                                                     {{ html()->label(__('messages.image') . ' (Optional)', "options[{$index}][image]")->class('form-control-label') }}
@@ -388,12 +388,12 @@
                                     @else
                                         <div class="option-row row mb-3 p-3 border rounded" data-index="0">
                                             <div class="form-group col-md-4">
-                                                {{ html()->label(__('messages.name') . ' <span class="text-danger">*</span>', 'options[0][name]')->class('form-control-label') }}
-                                                {{ html()->text('options[0][name]', '')->placeholder(__('messages.name'))->class('form-control option-name')->required() }}
+                                                {{ html()->label(__('messages.name'), 'options[0][name]')->class('form-control-label') }}
+                                                {{ html()->text('options[0][name]', '')->placeholder(__('messages.name'))->class('form-control option-name') }}
                                             </div>
                                             <div class="form-group col-md-4">
-                                                {{ html()->label(__('messages.price') . ' <span class="text-danger">*</span>', 'options[0][price]')->class('form-control-label') }}
-                                                {{ html()->text('options[0][price]', '')->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$')->required() }}
+                                                {{ html()->label(__('messages.price'), 'options[0][price]')->class('form-control-label') }}
+                                                {{ html()->text('options[0][price]', '')->placeholder(__('messages.price'))->class('form-control option-price')->attribute('step', 'any')->attribute('pattern', '^\d+(\.\d{1,2})?$') }}
                                             </div>
                                             <div class="form-group col-md-3">
                                                 {{ html()->label(__('messages.image') . ' (Optional)', 'options[0][image]')->class('form-control-label') }}
@@ -1497,12 +1497,12 @@
                     row.innerHTML = `
                         <input type="hidden" name="options[${index}][id]" value="${idValue}">
                         <div class="form-group col-md-4">
-                            <label class="form-control-label" for="options[${index}][name]">${optionLabelName} <span class="text-danger">*</span></label>
-                            <input type="text" name="options[${index}][name]" class="form-control option-name" value="${nameValue}" placeholder="${optionLabelName}" required>
+                            <label class="form-control-label" for="options[${index}][name]">${optionLabelName}</label>
+                            <input type="text" name="options[${index}][name]" class="form-control option-name" value="${nameValue}" placeholder="${optionLabelName}">
                         </div>
                         <div class="form-group col-md-4">
-                            <label class="form-control-label" for="options[${index}][price]">${optionLabelPrice} <span class="text-danger">*</span></label>
-                            <input type="text" name="options[${index}][price]" class="form-control option-price" value="${priceValue}" placeholder="${optionLabelPrice}" step="any" pattern="^\\d+(\\.\\d{1,2})?$" required>
+                            <label class="form-control-label" for="options[${index}][price]">${optionLabelPrice}</label>
+                            <input type="text" name="options[${index}][price]" class="form-control option-price" value="${priceValue}" placeholder="${optionLabelPrice}" step="any" pattern="^\\d+(\\.\\d{1,2})?$">
                         </div>
                         <div class="form-group col-md-3">
                             <label class="form-control-label" for="options[${index}][image]">${optionLabelImage} (Optional)</label>

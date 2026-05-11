@@ -811,7 +811,7 @@ class ServiceController extends Controller
             $optionFiles = $request->file('options') ?: [];
 
             foreach ($optionsData as $index => $optionData) {
-                if (empty($optionData['name']) || !isset($optionData['price']) || $optionData['price'] === '') {
+                if (empty($optionData['name']) && (!isset($optionData['price']) || $optionData['price'] === '')) {
                     continue;
                 }
 
