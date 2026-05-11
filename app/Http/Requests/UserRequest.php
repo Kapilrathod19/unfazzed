@@ -41,8 +41,8 @@ class UserRequest extends FormRequest
             $rules['document_id.*'] = ['in:' . implode(',', $allDocIds)];
             
             // Add validation for categories, zones, and taxes
-            $rules['category_ids'] = ['nullable']; 
-            $rules['service_zones'] = ['nullable']; 
+            $rules['category_ids'] = ['required_if:user_type,provider']; 
+            $rules['service_zones'] = ['required_if:user_type,provider']; 
             $rules['tax_id'] = ['nullable'];
             $rules['providertype_id'] = ['required_if:user_type,provider', 'exists:provider_types,id'];
         }
@@ -80,7 +80,9 @@ class UserRequest extends FormRequest
     public function messages()
     {
         return [
-            'profile_image.*' => __('messages.image_png_gif')
+            'profile_image.*' => __('messages.image_png_gif'),
+            'category_ids.required_if' => 'Please select at least one category.',
+            'service_zones.required_if' => 'Please select at least one service zone.',
         ];
     }
 
