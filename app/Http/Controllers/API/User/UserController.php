@@ -194,6 +194,8 @@ class UserController extends Controller
                 // Mail::to($user->email)->send(new VerificationEmail($verificationLink));
                 // $message = 'Email Verification link has been sent to your email. Please Check your inbox';
                 
+                $user->load(['serviceZones', 'categories']);
+                
                 $message = trans('messages.save_form', ['form' => $input['user_type']]);
                 $response = [
                     'message' => $message,
