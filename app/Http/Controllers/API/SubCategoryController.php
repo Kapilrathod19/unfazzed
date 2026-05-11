@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SubCategory;
 use App\Http\Resources\API\SubCategoryResource;
+use App\Traits\ZoneTrait;
 
 
 class SubCategoryController extends Controller
 {
+    use ZoneTrait;
     public function getSubCategoryList(Request $request){
         $subcategory = SubCategory::where('status',1);
         if(auth()->user() !== null){
@@ -23,6 +25,20 @@ class SubCategoryController extends Controller
         }
         if($request->has('category_id')){
             $subcategory->where('category_id',$request->category_id);
+        }
+
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $zoneIds = $this->getMatchingZonesByLatLng($request->latitude, $request->longitude);
+            if (!empty($zoneIds)) {
+                $subcategory->whereHas('services', function($q) use ($zoneIds) {
+                    $q->where('status', 1)
+                      ->whereHas('zones', function($q2) use ($zoneIds) {
+                          $q2->whereIn('service_zones.id', $zoneIds);
+                      });
+                });
+            } else {
+                $subcategory->whereRaw('1 = 0');
+            }
         }
         $per_page = config('constant.PER_PAGE_LIMIT');
         if( $request->has('per_page') && !empty($request->per_page)){

@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Http\Resources\API\CategoryResource;
 use Illuminate\Support\Facades\Artisan;
+use App\Traits\ZoneTrait;
 
 
 class CategoryController extends Controller
 {
+    use ZoneTrait;
     public function getCategoryList(Request $request){
         $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
         $category = Category::where('status',1);
@@ -23,6 +25,22 @@ class CategoryController extends Controller
         }
         if($request->has('is_featured')){
             $category->where('is_featured',$request->is_featured);
+        }
+
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $zoneIds = $this->getMatchingZonesByLatLng($request->latitude, $request->longitude);
+            if (!empty($zoneIds)) {
+                $category->whereHas('services', function($q) use ($zoneIds) {
+                    $q->where('status', 1)
+                      ->whereHas('zones', function($q2) use ($zoneIds) {
+                          $q2->whereIn('service_zones.id', $zoneIds);
+                      });
+                });
+            } else {
+                // If no zone matches, optionally return no categories or handle as per business logic
+                // For now, if no zone matches but lat/long provided, we might want to return empty list
+                $category->whereRaw('1 = 0');
+            }
         }
 
         $per_page = config('constant.PER_PAGE_LIMIT');
