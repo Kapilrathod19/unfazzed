@@ -479,7 +479,7 @@ class BookingController extends Controller
     date_default_timezone_set($admin->time_zone ?? 'UTC');
 
     $data = $request->all();
-    $serviceZone = ServiceZone::all();
+    $serviceZone = ServiceZone::where('status', 1)->get();
 
     // if (count($serviceZone) > 0) {
     //     $data['zone_id'] = $data['booking_address_id'] ?? null;
@@ -571,7 +571,7 @@ class BookingController extends Controller
     $effectiveLng = $bookingAddress ? $bookingAddress->longitude : ($request->longitude ?? null);
 
     if (empty($data['zone_id']) && $effectiveLat && $effectiveLng) {
-        $allZones = \App\Models\ServiceZone::all();
+        $allZones = \App\Models\ServiceZone::where('status', 1)->get();
         foreach ($allZones as $zone) {
             $polygon = is_string($zone->coordinates) ? json_decode($zone->coordinates, true) : $zone->coordinates;
             if (is_array($polygon) && count($polygon) >= 3) {
