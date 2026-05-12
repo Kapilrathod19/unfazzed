@@ -48,6 +48,9 @@ class Category extends BaseModel implements HasMedia
     public function services(){
         return $this->hasMany(Service::class, 'category_id','id');
     }
+    public function subcategory(){
+        return $this->hasMany(SubCategory::class, 'category_id','id')->withTrashed();
+    }
     public function scopeList($query)
     {
         return $query->orderByRaw('deleted_at IS NULL DESC, deleted_at DESC')->orderBy('updated_at', 'desc');

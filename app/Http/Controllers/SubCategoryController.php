@@ -78,9 +78,13 @@ class SubCategoryController extends Controller
                
             })
             ->editColumn('category_id' , function ($query) use ($primary_locale){
-                $catname = $this->getTranslation($query->category->translations, $primary_locale, 'name', $query->category->name) ?? $query->category->name;
-                return $catname ?? '-';
-                //return ($query->category_id != null && isset($query->category)) ? $query->category->name : '-';
+                $category = $query->category;
+                if ($category) {
+                    $catname = $this->getTranslation($category->translations, $primary_locale, 'name', $category->name) ?? $category->name;
+                } else {
+                    $catname = '-';
+                }
+                return $catname;
             })
             ->filterColumn('category_id',function($query,$keyword) use($primary_locale){
                 $query->whereHas('category', function ($q) use ($keyword, $primary_locale) {

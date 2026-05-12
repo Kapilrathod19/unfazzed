@@ -146,6 +146,7 @@ class CategoryController extends Controller
                     return response()->json(['status' => false, 'message' => trans('messages.permission_denied')]);
                 }
                 Category::whereIn('id', $ids)->delete();
+                SubCategory::whereIn('category_id', $ids)->delete();
                 return response()->json(['status' => true, 'message' => 'Deleted']);
 
             case 'restore':
@@ -153,6 +154,7 @@ class CategoryController extends Controller
                     return response()->json(['status' => false, 'message' => trans('messages.permission_denied')]);
                 }
                 Category::whereIn('id', $ids)->restore();
+                SubCategory::withTrashed()->whereIn('category_id', $ids)->restore();
                 return response()->json(['status' => true, 'message' => 'Restored']);
 
             case 'permanently-delete':
@@ -160,6 +162,7 @@ class CategoryController extends Controller
                     return response()->json(['status' => false, 'message' => trans('messages.permission_denied')]);
                 }
                 Category::whereIn('id', $ids)->forceDelete();
+                SubCategory::withTrashed()->whereIn('category_id', $ids)->forceDelete();
                 return response()->json(['status' => true, 'message' => 'Permanently Deleted']);
 
             default:
@@ -340,6 +343,7 @@ class CategoryController extends Controller
         try {
             $category = Category::findOrFail($id);
             $category->delete();
+            $category->subcategory()->delete();
             return response()->json(['status' => true, 'message' => trans('messages.category_deleted_successfully')]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => trans('messages.error_deleting', ['name' => trans('messages.category')])]);
@@ -360,11 +364,13 @@ class CategoryController extends Controller
             switch ($type) {
                 case 'restore':
                     $category->restore();
+                    $category->subcategory()->restore();
                     $message = trans('messages.restored_successfully');
                     break;
 
                 case 'forcedelete':
                     $category->forceDelete();
+                    $category->subcategory()->forceDelete();
                     $message = trans('messages.Categories_permanently_deleted');
                     break;
 
