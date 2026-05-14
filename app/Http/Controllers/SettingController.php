@@ -867,35 +867,50 @@ class SettingController extends Controller
                 'Content-Type: application/json',
             ];
 
-            if (!empty($data['is_type']) && $data['is_type'] == 'provider') {
-                $firebase_data = [
-                    'message' => [
-                        'topic' => 'providerApp',
-                        'notification' => [
-                            'title' => $heading['en'],
-                            'body' => $content['en'],
-                        ],
-                        'data' => [
-                            'type' => (string) $data['type'],
-                            'service_id' => (string) $data['service_id'],
-                        ],
-                    ],
-                ];
+            $logo = null;
+            if ($request->hasFile('notification_image')) {
+                $push_setting = \App\Models\Setting::where('type', 'push-notification')->first();
+                if (!$push_setting) {
+                    $push_setting = \App\Models\Setting::create(['type' => 'push-notification', 'key' => 'push-notification', 'value' => '']);
+                }
+                storeMediaFile($push_setting, $request->file('notification_image'), 'notification_image');
+                $logo = getSingleMedia($push_setting, 'notification_image');
             } else {
-                $firebase_data = [
-                    'message' => [
-                        'topic' => 'userApp',
-                        'notification' => [
-                            'title' => $heading['en'],
-                            'body' => $content['en'],
-                        ],
-                        'data' => [
-                            'type' => (string) $data['type'],
-                            'service_id' => (string) $data['service_id'],
+                $setting = \App\Models\Setting::where('type', 'theme-setup')->first();
+                $logo = getSingleMedia($setting, 'logo');
+            }
+
+            $payload = [
+                'topic' => (isset($data['is_type']) && $data['is_type'] == 'provider') ? 'providerApp' : 'userApp',
+                'notification' => [
+                    'title' => $heading['en'],
+                    'body' => $content['en'],
+                    'image' => $logo,
+                ],
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'image' => $logo,
+                    ],
+                ],
+                'apns' => [
+                    'fcm_options' => [
+                        'image' => $logo,
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'mutable-content' => 1,
+                            'sound' => 'default',
                         ],
                     ],
-                ];
-            }
+                ],
+                'data' => [
+                    'type' => (string) $data['type'],
+                    'service_id' => (string) $data['service_id'],
+                    'image' => $logo,
+                ],
+            ];
+            $firebase_data = ['message' => $payload];
 
             $ch = curl_init($apiUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

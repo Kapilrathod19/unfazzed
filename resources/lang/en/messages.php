@@ -396,6 +396,8 @@
     'payout_paid' => ':type paid :amount to you.',
     'provider_payout_paid_handyman' => 'You paid :amount to :user.',
     'pushnotification_settings' => 'Push Notification',
+    'default_notification_logo_hint' => 'Note: If no image is uploaded, the :default will be used.',
+    'website_logo' => 'Website Logo',
     'enable_payment' => 'Enable Payment',
     'cancelled_plan' => 'Your :plan successfully cancelled',
     'all' => 'All',

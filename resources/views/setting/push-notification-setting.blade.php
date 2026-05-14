@@ -57,6 +57,15 @@
                                 {{ html()->label(trans('messages.description') . ' <span class="text-danger">*</span>', 'description')->class('form-control-label') }}
                                 {{ html()->textarea('description', null)->class('form-control textarea')->id('description')->rows(3)->required()->placeholder(__('messages.description')) }}
                             </div>
+                            <div class="form-group col-md-12">
+                                {{ html()->label(trans('messages.image'), 'notification_image')->class('form-control-label') }}
+                                <div class="custom-file">
+                                    {{ html()->file('notification_image')->class('custom-file-input custom-file-input-sm detail')->id('notification_image')->attribute('accept', 'image/*') }}
+                                    <label class="custom-file-label upload-label" for="notification_image">{{ __('messages.choose_file',['file' =>  __('messages.image') ]) }}</label>
+                                </div>
+                                <small class="help-block with-errors text-danger"></small>
+                                <p class="text-muted mt-1">{{ __('messages.default_notification_logo_hint', ['default' => __('messages.website_logo')]) ?? 'Note: If no image is uploaded, the website logo will be used.' }}</p>
+                            </div>
                         </div>
                         
                         {{ html()->submit(trans('messages.save'))->class('btn btn-md btn-primary float-end') }}
