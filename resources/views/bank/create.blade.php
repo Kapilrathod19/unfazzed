@@ -42,8 +42,8 @@
                                 <small class="help-block with-errors text-danger"></small>
                             </div>
                             <div class="form-group col-md-4">
-                                {{ html()->label(trans('messages.branch_name') . ' <span class="text-danger">*</span>', 'branch_name')->class('form-control-label')}}
-                                {{ html()->text('branch_name', $bankdata->branch_name)->placeholder(trans('messages.branch_name'))->class('form-control')->required()}}
+                                {{ html()->label('Provider Name <span class="text-danger">*</span>', 'branch_name')->class('form-control-label')}}
+                                {{ html()->text('branch_name', $bankdata->branch_name)->placeholder('Provider Name')->class('form-control')->required()}}
                                 <small class="help-block with-errors text-danger"></small>
                             </div>
                             <div class="form-group col-md-4">

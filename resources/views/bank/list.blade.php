@@ -142,7 +142,7 @@
                     {
                         data: 'branch_name',
                         name: 'branch_name',
-                        title: "{{ __('messages.branch_name') }}"
+                        title: "Provider Name"
                     },
                     {
                         data: 'status',

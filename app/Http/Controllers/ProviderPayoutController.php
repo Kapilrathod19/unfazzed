@@ -128,38 +128,26 @@ class ProviderPayoutController extends Controller
         $pageTitle = trans('messages.add_button_form',['form' => trans('messages.provider_payout')]);
         $payoutdata = new ProviderPayout;
 
-        $provider = User::with('providertype','commission_earning')->find($id);
+        $provider = User::find($id);
 
-        $commissionData = $provider->commission_earning()
+        // Calculate Total Provider Earnings (from completed bookings)
+        $total_provider_earning = CommissionEarning::where('employee_id', $id)
             ->whereHas('getbooking', function ($query) {
                 $query->where('status', 'completed');
             })
-            ->where('commission_status', 'unpaid')
-            ->where('user_type', 'provider')
-            ->get(); // Use get() to retrieve the results as a collection
+            ->whereIn('user_type', ['provider', 'handyman'])
+            ->sum('commission_amount');
 
-        $ProviderEarning = 0;
+        // Calculate Total Paid Amount
+        $total_paid_amount = ProviderPayout::where('provider_id', $id)->sum('amount');
 
-        if ($commissionData) {
-            foreach ($commissionData as $commission) {
-                $commission_data = CommissionEarning::where('booking_id', $commission->booking_id) // Use $commission->booking_id
-                    ->whereIn('user_type', ['provider', 'handyman'])
-                    ->where('commission_status', 'unpaid')
-                    ->get(); 
+        // Due Amount = Total Earning - Total Paid
+        $due_amount = $total_provider_earning - $total_paid_amount;
 
-                foreach ($commission_data as $data) {
-                    if (isset($data->commission_amount)) {
-                        $ProviderEarning += $data->commission_amount;
-                    }
-                }
-            }
-        }
         $setting = Setting::getValueByKey('site-setup','site-setup');
         $digitafter_decimal_point = $setting ? $setting->digitafter_decimal_point : "2";
-        $total_earning = round($ProviderEarning,$digitafter_decimal_point);
-
-        $payoutdata->amount = $total_earning;
-
+        
+        $payoutdata->amount = round($due_amount, $digitafter_decimal_point);
         $payoutdata->provider_id = $id;
 
         return view('providerpayout.create', compact('pageTitle' ,'payoutdata' ,'auth_user' ,'redirect_type'));
@@ -178,103 +166,14 @@ class ProviderPayoutController extends Controller
         return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
     }
 
-    // Set timezone
-    $admin = \App\Models\AppSetting::first();
-    date_default_timezone_set($admin->time_zone ?? 'UTC');
-
     $data = $request->except('_token');
+    $provider_id = $data['provider_id'];
 
-    $provider_id     = $data['provider_id'];
-    $payment_method  = $data['payment_method'] ?? '';
-    $payment_gateway = $data['payment_gateway'] ?? '';
-
-    $data['status'] = 'pending';
-    $data['paid_date'] = null;
-
-    /* ================= BANK PAYOUT ================= */
-    if ($payment_method === 'bank') {
-
-        switch ($payment_gateway) {
-
-            /* ================= RAZORPAY X ================= */
-            case 'razorpayx':
-
-                $response = providerpayout_rezopayX($data);
-
-                if ($response == '') {
-                    return redirect()->back()
-                        ->withErrors(trans('messages.rezorpayx_details'))
-                        ->withInput();
-                }
-
-                $payout = json_decode($response, true);
-
-                // ❌ ERROR CASE (SAFE CHECK)
-                if (isset($payout['error']) && !empty($payout['error'])) {
-
-                    $razorpay_message = $payout['error']['description'] ?? 'Razorpay error';
-
-                    return redirect()->back()
-                        ->withErrors(
-                            trans('messages.razorpay_message', [
-                                'razorpay_message' => $razorpay_message
-                            ])
-                        )
-                        ->withInput();
-                }
-
-                // ✅ SUCCESS CASE
-                $data['status']    = 'paid';
-                $data['paid_date'] = Carbon::now();
-                break;
-
-            /* ================= STRIPE ================= */
-            case 'stripe':
-
-                $response = providerpayout_stripe($data);
-
-                if ($response == '') {
-                    return redirect()->back()
-                        ->withErrors(trans('messages.stripe_details'))
-                        ->withInput();
-                }
-
-                // Stripe error
-                if (isset($response->status) && $response->status == 400) {
-                    return redirect()->back()
-                        ->withErrors(
-                            trans('messages.stripe_message', [
-                                'stripe_message' => $response->code
-                            ])
-                        )
-                        ->withInput();
-                }
-
-                // Stripe success
-                $data['status']    = 'paid';
-                $data['paid_date'] = Carbon::now();
-                break;
-        }
-    }
+    $data['status']    = 'paid';
+    $data['paid_date'] = Carbon::now();
 
     /* ================= CREATE PAYOUT ENTRY ================= */
     $result = ProviderPayout::create($data);
-
-    /* ================= MARK COMMISSION AS PAID ================= */
-    CommissionEarning::where('employee_id', $provider_id)
-        ->where('commission_status', 'unpaid')
-        ->update(['commission_status' => 'paid']);
-
-    /* ================= NOTIFICATION ================= */
-    $activity_data = [
-        'type'          => 'provider_payout',
-        'activity_type' => 'provider_payout',
-        'id'            => $result->id,
-        'pay_date'      => $result->paid_date,
-        'user_id'       => $result->provider_id,
-        'amount'        => $result->amount,
-    ];
-    $this->sendNotification($activity_data);
 
     /* ================= WALLET DEBIT LOGIC ================= */
     $wallet = Wallet::where('user_id', $provider_id)->first();
@@ -297,18 +196,10 @@ class ProviderPayoutController extends Controller
         \App\Models\WalletHistory::create($historyData);
     }
 
-    /* ================= API RESPONSE ================= */
     if ($request->is('api*')) {
         return comman_message_response(
             __('messages.created_success', ['form' => 'Provider Payout'])
         );
-    }
-
-    /* ================= REDIRECT ================= */
-    if ($request->redirect_type === 'collect_money') {
-        return redirect()
-            ->route('providerpayout.show', $provider_id)
-            ->with('success', __('messages.created_success', ['form' => 'Provider Payout']));
     }
 
     return redirect()

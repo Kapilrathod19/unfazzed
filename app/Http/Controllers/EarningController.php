@@ -57,52 +57,28 @@ class EarningController extends Controller
                        
 
             ->addColumn('action', function($row) {
-                $btn = '-';
                 $provider_id = $row->id;
 
-                $commissionData = $row->commission_earning()
+                // Total Provider Earnings
+                $total_provider_earning = CommissionEarning::where('employee_id', $provider_id)
                     ->whereHas('getbooking', function ($query) {
                         $query->where('status', 'completed');
                     })
-                    ->where('commission_status', 'unpaid')
-                    ->where('user_type', 'provider');
+                    ->whereIn('user_type', ['provider', 'handyman'])
+                    ->sum('commission_amount');
 
+                // Total Provider Paid
+                $total_paid_amount = ProviderPayout::where('provider_id', $provider_id)->sum('amount');
 
+                $due_amount = $total_provider_earning - $total_paid_amount;
+                $row['total_pay'] = $due_amount;
 
-                // $totalBookings = $commissionData->distinct('booking_id')->count();
-
-
-                $row['commission'] = $commissionData->get();
-                // $row['total_bookings'] = $totalBookings;
-                $ProviderEarning = 0;
-                if($row['commission']->count() > 0){
-                    foreach ($row['commission'] as $commission) {
-                        if ($commission != null) {
-                            // Fetch commission data for related bookings including handyman
-                            $commission_data = CommissionEarning::where('booking_id', $commission->booking_id)
-                                ->whereIn('user_type', ['provider', 'handyman'])
-                                ->where('commission_status', 'unpaid')
-                                ->get();
-
-                            if ($commission_data) {
-                                foreach ($commission_data as $data) {
-                                    if (isset($data->commission_amount)) {
-                                        $ProviderEarning += $data->commission_amount;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $row['total_pay'] = $ProviderEarning;
-
-                if($commissionData->count() > 0){
-                    $btn = "<a href=". route('providerpayout.create',$provider_id) ."><i class='fas fa-money-bill-alt earning-icon'></i></a>";
+                $btn = '-';
+                if ($due_amount > 0) {
+                    $btn = "<a href=". route('providerpayout.create', $provider_id) ."><i class='fas fa-money-bill-alt earning-icon'></i></a>";
                 }
 
                 return $btn;
-
             })
             // ->editColumn('commission', function ($row) {
 

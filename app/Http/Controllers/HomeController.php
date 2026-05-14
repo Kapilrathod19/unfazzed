@@ -717,6 +717,11 @@ class HomeController extends Controller
                 $items = $items->get();
                 break;
 
+            case 'bank_details':
+                $items = \App\Models\Bank::where('id', $request->bank_id)->first();
+                return response()->json($items);
+                break;
+
             case 'country':
                 $items = \App\Models\Country::select('id', 'name as text');
 
