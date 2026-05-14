@@ -45,6 +45,7 @@ class Booking extends Model
         'cancellation_charge_amount',
         'zone_id',
         'otp',
+        'rejected_by',
     ];
 
     protected $casts = [
@@ -65,6 +66,7 @@ class Booking extends Model
         'final_sub_total' => 'double',
         'final_discount_amount' => 'double',
         'final_coupon_discount_amount' => 'double',
+        'rejected_by' => 'array',
     ];
     public function customer()
     {
@@ -138,7 +140,11 @@ class Booking extends Model
                                 ->whereHas('service', function ($serviceQ) use ($user) {
                                     $serviceQ->whereIn('category_id', $user->categories()->pluck('category_user.category_id'));
                                 })
-                                ->whereIn('bookings.zone_id', $user->providerZones()->pluck('provider_zone_mappings.zone_id'));
+                                ->whereIn('bookings.zone_id', $user->providerZones()->pluck('provider_zone_mappings.zone_id'))
+                                ->where(function ($rejectQuery) use ($user) {
+                                    $rejectQuery->whereNull('bookings.rejected_by')
+                                        ->orWhereJsonDoesntContain('bookings.rejected_by', $user->id);
+                                });
                         });
                 });
             }
