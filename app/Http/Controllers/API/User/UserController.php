@@ -1299,66 +1299,102 @@ class UserController extends Controller
     {
         $input = $request->all();
         $contact_number = $input['contact_number'] ?? null;
+        $email = $input['email'] ?? null;
 
-        if (!$contact_number) {
-            return comman_message_response('Contact number is required', 400);
+        if (!$contact_number && !$email) {
+            return comman_message_response('Contact number or Email is required', 400);
         }
 
-        $user = User::where('contact_number', $contact_number)->first();
+        // Try to find user by contact number first
+        $user = User::withTrashed()->where('contact_number', $contact_number)->first();
 
-        if (!$user) {
-            // Validate email/username for new user to prevent 500 error
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-                'email' => 'required|email|unique:users,email',
-                'username' => 'nullable|string|unique:users,username',
-            ]);
+        // If not found by contact number, try searching by email
+        if (!$user && $email) {
+            $user = User::withTrashed()->where('email', $email)->first();
+        }
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validator->errors()->first(),
-                    'all_message' => $validator->errors()
-                ], 406);
+        if ($user) {
+            if ($user->deleted_at != null) {
+                $user->restore();
             }
-
-            // Check if username (phone) already exists
-            $existingUsername = User::where('username', $contact_number)->first();
-            if ($existingUsername) {
-                $input['username'] = $contact_number . '_' . time();
-            } else {
-                $input['username'] = $contact_number;
-            }
-
-            $input['user_type'] = 'user';
+            
+            // Optional: Update user info if provided during login
             $input['login_type'] = 'mobile';
-            $input['display_name'] = ($input['first_name'] ?? '') . " " . ($input['last_name'] ?? '');
-            $input['password'] = Hash::make($contact_number); // Dummy password
+            if (isset($input['first_name']) || isset($input['last_name'])) {
+                $input['display_name'] = ($input['first_name'] ?? $user->first_name) . " " . ($input['last_name'] ?? $user->last_name);
+            }
             
-            $user = User::create($input);
-            $user->assignRole('user');
-            
-            // Create wallet
+            // Only update fields that are actually in the request
+            $user->update(array_filter($input));
+
+            $user['api_token'] = $user->createToken('auth_token')->plainTextToken;
+            $user['profile_image'] = getSingleMedia($user, 'profile_image', null);
+
+            return comman_custom_response([
+                'status' => true,
+                'is_user_exist' => true,
+                'message' => trans('messages.login_success'),
+                'data' => $user
+            ]);
+        } else {
+            return comman_custom_response([
+                'status' => true,
+                'is_user_exist' => false,
+                'message' => trans('messages.user_not_found')
+            ]);
+        }
+    }
+
+    public function userSave(Request $request)
+    {
+        $input = $request->all();
+        
+        $validator = \Illuminate\Support\Facades\Validator::make($input, [
+            'contact_number' => 'required|unique:users,contact_number',
+            'email' => 'required|email|unique:users,email',
+            'first_name' => 'required',
+            'last_name' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+                'all_message' => $validator->errors()
+            ], 406);
+        }
+
+        // Handle username (use contact_number or part of email)
+        if (!isset($input['username']) || empty($input['username'])) {
+            $existingUsername = User::where('username', $input['contact_number'])->first();
+            $input['username'] = $existingUsername ? $input['contact_number'] . '_' . time() : $input['contact_number'];
+        }
+
+        $input['user_type'] = 'user';
+        $input['login_type'] = 'mobile';
+        $input['display_name'] = $input['first_name'] . " " . $input['last_name'];
+        $input['password'] = Hash::make($input['contact_number']); // Dummy password
+        $input['status'] = 1;
+        
+        $user = User::create($input);
+        $user->assignRole('user');
+        
+        // Create wallet if not already exists
+        if (\App\Models\Wallet::where('user_id', $user->id)->count() == 0) {
             \App\Models\Wallet::create([
                 'title' => $user->display_name,
                 'user_id' => $user->id,
                 'amount' => 0
             ]);
-            
-            $message = trans('messages.save_form', ['form' => 'user']);
-        } else {
-            // If contact number exists, just log them in without overwriting their profile
-            $message = trans('messages.login_success');
         }
 
         $user['api_token'] = $user->createToken('auth_token')->plainTextToken;
         $user['profile_image'] = getSingleMedia($user, 'profile_image', null);
 
-        $response = [
+        return comman_custom_response([
             'status' => true,
-            'message' => $message,
+            'message' => trans('messages.save_form', ['form' => 'user']),
             'data' => $user
-        ];
-
-        return comman_custom_response($response);
+        ]);
     }
 }
