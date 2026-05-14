@@ -576,7 +576,7 @@
             ->nickname('payment')
             ->data('permission', 'payment list');
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.cash_payments') .
@@ -596,7 +596,7 @@
 </g><defs><clipPath id="clip0_1544_3669"><rect width="24" height="24" fill="white"/></clipPath></defs></svg>',
             )
             ->nickname('cash_history')
-            ->data('permission', 'payment list');
+            ->data('permission', 'payment list'); */
 
         $menu
             ->add(
@@ -618,7 +618,7 @@
             )
             ->nickname('earning');
 
-        if (
+        /* if (
             auth()->user()->user_type == 'provider' ||
             auth()->user()->user_type == 'admin' ||
             auth()->user()->user_type == 'demo_admin'
@@ -642,7 +642,7 @@
                 )
                 ->nickname('provider_withdrawal_requests')
                 ->data('permission', 'service list');
-        }
+        } */
 
         $user = auth()->user();
         $isAdminOrProvider = $user && ($user->hasRole('admin') || $user->hasRole('provider')); // Check if user is admin or provider
