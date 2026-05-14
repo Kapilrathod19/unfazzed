@@ -442,7 +442,7 @@
             )
             ->link->attr(['class' => '']);
 
-        $menu->handyman
+        /* $menu->handyman
             ->add('<span>' . __('messages.list_form_title', ['form' => __('messages.handyman_earning')]) . '</span>', [
                 'class' => 'sidebar-layout',
                 'route' => 'handymanEarning',
@@ -460,9 +460,9 @@
     </defs>
 </svg>',
             )
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
-        $menu->handyman
+        /* $menu->handyman
             ->add('<span>' . __('messages.list_form_title', ['form' => __('messages.handymantype')]) . '</span>', [
                 'class' => 'sidebar-layout',
                 'route' => 'handymantype.index',
@@ -483,7 +483,7 @@
 </defs>
 </svg>',
             )
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
         $menu
             ->add(
