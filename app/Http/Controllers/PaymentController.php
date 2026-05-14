@@ -124,14 +124,16 @@ class PaymentController extends Controller
                 }
             })
             ->editColumn('booking_id', function($payment) {
-                if(!empty($payment->booking->bookingPackage)){
-                    $service_name = optional(optional($payment->booking)->bookingPackage)->name." (".__('messages.service_package').")";
+                if (isset($payment->booking)) {
+                    if(!empty($payment->booking->bookingPackage)){
+                        $service_name = optional(optional($payment->booking)->bookingPackage)->name." (".__('messages.service_package').")";
+                    }
+                    else{
+                        $service_name = optional(optional($payment->booking)->service)->name." (".__('messages.service').")";
+                    }
+                    return ($payment->customer_id != null && isset($payment->booking->service)) ? $service_name :'-';
                 }
-                else{
-                    $service_name = optional(optional($payment->booking)->service)->name." (".__('messages.service').")";
-                }
-     
-                return ($payment->customer_id != null &&isset($payment->booking->service)) ? $service_name :'-';
+                return '-';
             })
             ->filterColumn('booking_id',function($query,$keyword){
                 $query->whereHas('booking.service',function ($q) use($keyword){
@@ -212,21 +214,25 @@ class PaymentController extends Controller
                 return '<input type="checkbox" class="form-check-input select-table-row"  id="datatable-row-'.$row->id.'"  name="datatable_ids[]" value="'.$row->id.'" onclick="dataTableRowCheck('.$row->id.')">';
             })
         ->editColumn('id', function($query) {
-
-            return "<a class='btn-link btn-link-hover' href=" .route('booking.show', $query->booking->id).">#".$query->booking->id."</a>"; 
+            if (isset($query->booking)) {
+                return "<a class='btn-link btn-link-hover' href=" .route('booking.show', $query->booking->id).">#".$query->booking->id."</a>"; 
+            }
+            return '-';
         })
         ->orderColumn('id', function($query, $order) {
             $query->orderBy('payments.booking_id', $order);  
         })
         ->editColumn('booking_id', function($query) {
-            if(!empty($query->booking->bookingPackage)){
-                $service_name = optional(optional($query->booking)->bookingPackage)->name." (".__('messages.service_package').")";
+            if (isset($query->booking)) {
+                if(!empty($query->booking->bookingPackage)){
+                    $service_name = optional(optional($query->booking)->bookingPackage)->name." (".__('messages.service_package').")";
+                }
+                else{
+                    $service_name = optional(optional($query->booking)->service)->name." (".__('messages.service').")";
+                }
+                return ($query->customer_id != null && isset($query->booking->service)) ? $service_name :'-';
             }
-            else{
-                $service_name = optional(optional($query->booking)->service)->name." (".__('messages.service').")";
-            }
- 
-            return ($query->customer_id != null &&isset($query->booking->service)) ? $service_name :'-';
+            return '-';
         })
         ->filterColumn('booking_id',function($query,$keyword){
             $query->whereHas('booking.service',function ($q) use($keyword){
