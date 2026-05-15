@@ -380,31 +380,20 @@ class DashboardController extends Controller
 
         $total_revenue    = ProviderPayout::where('provider_id', $provider->id)->sum('amount') ?? 0;
 
-        $handymanIds = User::with('providerHandyman')
-            ->where('provider_id', $provider->id)
-            ->pluck('id');
-        $handymanIds[] = $provider->id;
+        $total_provider_earning = CommissionEarning::where('employee_id', $provider->id)
+            ->whereHas('getbooking', function ($query) {
+                $query->where('status', 'completed');
+            })
+            ->whereIn('user_type', ['provider', 'handyman'])
+            ->sum('commission_amount');
+
+        $setting = Setting::getValueByKey('site-setup','site-setup');
+        $digitafter_decimal_point = $setting ? $setting->digitafter_decimal_point : 2;
+        $remaining_payout = round($total_provider_earning - $total_revenue, $digitafter_decimal_point);
+
         $user = User::with('commission_earning')->where('id', $provider->id)->where('user_type', 'provider')->first();
-        $remaining_payout  = 0;
         $data['revenueData']    =    [];
         if ($user) {
-            $commissions = $user->commission_earning()
-                ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
-                })
-                ->where('commission_status', 'unpaid')
-                ->pluck('booking_id'); // Get all booking IDs
-
-            $ProviderEarning = 0;
-
-            if ($commissions->isNotEmpty()) {
-                // Fetch all unpaid commissions for the relevant bookings in a single query
-                $ProviderEarning = CommissionEarning::whereIn('booking_id', $commissions)
-                    ->whereIn('user_type', ['provider', 'handyman'])
-                    ->where('commission_status', 'unpaid')
-                    ->sum('commission_amount'); // Directly sum the commission_amount
-            }
-            $remaining_payout  = $ProviderEarning;
             //$remaining_payout  = CommissionEarning::where('employee_id',$provider->id)->where('commission_status', 'unpaid')->sum('commission_amount') ?? 0;
             $revenuedata = ProviderPayout::selectRaw('sum(amount) as total , DATE_FORMAT(updated_at , "%m") as month')
                 ->where('provider_id', $user->id)
