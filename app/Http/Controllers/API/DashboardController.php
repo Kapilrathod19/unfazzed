@@ -527,7 +527,7 @@ class DashboardController extends Controller
 
         $notification = count($handyman->unreadNotifications);
 
-        $upcomming_booking = Booking::myBooking()->with('customer')->where('status', 'pending')->orderBy('id', 'DESC')->take(5)->get();
+        $upcomming_booking = Booking::myBooking()->with('customer')->where('status', 'accept')->orderBy('id', 'DESC')->take(5)->get();
         if (!empty($upcomming_booking)) {
             $upcomming_booking = BookingResource::collection($upcomming_booking);
         }
