@@ -716,7 +716,7 @@ class DashboardController extends Controller
             "provider_banner_amount" => isset($provider_banner->promotion_price) ? (float)$provider_banner->promotion_price : 0,
             "promotional_banner" => isset($provider_banner->promotion_enable) ? (bool)$provider_banner->promotion_enable : false,
             "enable_chat" => isset($other_setting->enable_chat) ? $other_setting->enable_chat : 0,
-
+            "login_image" => getSingleMedia(AppSetting::first(), 'login_image', false),
         ];
         if (!empty($request->is_authenticated) && $request->is_authenticated == 1) {
             $response["google_map_key"] = $sitesetup->google_map_keys;
@@ -741,5 +741,18 @@ class DashboardController extends Controller
         $message = trans('messages.firebase_data');
 
         return response()->json(['status' => true, 'data' => $data, 'message' => $message]);
+    }
+
+    public function getLoginImage(Request $request)
+    {
+        $app_setting = AppSetting::first();
+        $login_image = getSingleMedia($app_setting, 'login_image', false);
+
+        $response = [
+            'status' => true,
+            'login_image' => $login_image,
+        ];
+
+        return comman_custom_response($response);
     }
 }

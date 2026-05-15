@@ -47,6 +47,7 @@ Route::get('top-rated-service', [API\ServiceController::class, 'getTopRatedServi
 Route::get('coupon-list', [API\CouponController::class, 'getCouponList']);
 Route::post('configurations', [API\DashboardController::class, "configurations"]);
 Route::get('firebase-detail', [API\DashboardController::class, "firebaseDetails"]);
+Route::get('login-image', [API\DashboardController::class, "getLoginImage"]);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

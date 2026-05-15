@@ -148,6 +148,9 @@ function getSingleMedia($model, $collection = 'profile_image', $skip = true)
             case 'helpdesk_activity_attachment':
                 $media = asset('images/default.png');
                 break;
+            case 'login_image':
+                $media = asset('images/default.png');
+                break;
             default:
                 $media = asset('images/default.png');
                 break;
