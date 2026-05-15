@@ -216,7 +216,7 @@
 
         } */
         
-        if (optional($servicesetting)->post_services == 1) {
+        /* if (optional($servicesetting)->post_services == 1) {
             $menu
                 ->add(__('messages.sidebar_form_title', ['form' => trans('messages.custom_job')]), [
                     'class' => 'category-main',
@@ -264,7 +264,7 @@
                 )
                 ->data('permission', 'userservice list')
                 ->link->attr(['class' => '']);
-        }
+        } */
 
         $menu
             ->add(__('messages.sidebar_form_title', ['form' => trans('messages.user')]), ['class' => 'category-main'])
