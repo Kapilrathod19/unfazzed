@@ -160,26 +160,6 @@ class EarningController extends Controller
             ->editColumn('provider_earning', function ($row) {
                 return $row->total_pay ? getPriceFormat($row->total_pay) : getPriceFormat(0);
             })
-            ->editColumn('handyman_total_earning', function($row){
-
-                $handyman_total_earning = 0;
-                $commissions = $row->commission_earning()
-                ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
-                })
-                ->whereIn('commission_status', ['paid'])
-                ->where('user_type', 'provider')->get();
-                foreach($commissions as $commission){
-                    if($commission != null){
-                    $commission_data = CommissionEarning::where('booking_id', $commission->booking_id)->where('user_type', 'handyman')->where('commission_status', 'paid')->first();
-                    if($commission_data){
-                        $handyman_total_earning += $commission_data->commission_amount;
-                    }
-                    }
-                }
-
-                return $handyman_total_earning ? getPriceFormat( $handyman_total_earning) : getPriceFormat(0);
-            })
 
             ->editColumn('provider_paid_earning', function($row){
                 $commissionData = ProviderPayout::where('provider_id',$row->id)
@@ -191,7 +171,7 @@ class EarningController extends Controller
 
 
 
-            ->rawColumns(['provider_name','action','total_bookings','commission','total_earning','provider_total_earning','provider_paid_earning','handyman_total_earning'])
+            ->rawColumns(['provider_name','action','total_bookings','commission','total_earning','provider_total_earning','provider_paid_earning'])
             ->make(true);
         }
         if($request->is('api/*')) {
@@ -257,23 +237,7 @@ class EarningController extends Controller
                     }
                 }
 
-                $handymancommissionData = $provider->commission_earning()
-                    ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
-                    })
-                    ->whereIn('commission_status', ['paid'])
-                    ->where('user_type', 'provider')->get();
-                $handyman_total_earning = 0;
-                if($handymancommissionData){
-                    foreach($handymancommissionData as $commission){
-                        if($commission != null){
-                        $commission_data = CommissionEarning::where('booking_id', $commission->booking_id)->where('user_type', 'handyman')->where('commission_status', 'paid')->first();
-                        if($commission_data){
-                            $handyman_total_earning += $commission_data->commission_amount;
-                        }
-                        }
-                    }
-                }
+
 
                 $provider_paid_earning = ProviderPayout::where('provider_id',$provider->id)->sum('amount');
                 $provider_paid_earning = $provider_paid_earning ?? 0;
@@ -296,7 +260,7 @@ class EarningController extends Controller
                     'provider_paid_earning' => $provider_paid_earning,
                     'provider_paid_earning_formate' => $provider_paid_earning,
                     'provider_due_amount' => $providerDueAmount,
-                    'handyman_total_amount' => $handyman_total_earning,
+
                 ];
             }
             return comman_custom_response($earningData);
