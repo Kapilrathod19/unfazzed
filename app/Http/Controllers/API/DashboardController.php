@@ -744,4 +744,30 @@ class DashboardController extends Controller
 
         return comman_custom_response($response);
     }
+
+    public function getTermsConditions(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $terms_condition = Setting::getValueByKey('terms_condition', 'terms_condition', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $terms_condition
+        ];
+
+        return comman_custom_response($response);
+    }
+
+    public function getPrivacyPolicy(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $privacy_policy = Setting::getValueByKey('privacy_policy', 'privacy_policy', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $privacy_policy
+        ];
+
+        return comman_custom_response($response);
+    }
 }
