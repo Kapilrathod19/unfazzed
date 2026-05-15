@@ -436,7 +436,7 @@ class DashboardController extends Controller
         }
         $post_request = PostJobRequest::where('status', 'requested')->latest()->take(5)->get();
         $post_requests = PostJobRequestResource::collection($post_request);
-        $upcomming_booking = Booking::myBooking()->with('customer')->where('date', '>', now())->where('status', 'pending')->orderBy('id', 'DESC')->take(5)->get();
+        $upcomming_booking = Booking::myBooking()->with('customer')->where('date', '>', now())->where('status', 'accept')->orderBy('id', 'DESC')->take(5)->get();
         if (!empty($upcomming_booking)) {
             $upcomming_booking = BookingResource::collection($upcomming_booking);
         }
