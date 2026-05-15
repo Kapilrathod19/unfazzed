@@ -90,7 +90,7 @@
     'user_setting' => 'User Setting',
     'login_success' => 'You have successfully logged in.',
     'login_image' => 'Login Image',
-    'recommended_size_login_image' => 'Recommended size: 1080x1920 px (Portrait)',
+    'recommended_size_login_image' => 'Recommended size: 1080x1920 px',
     'current_image' => 'Current Image',
     'no_image_uploaded' => 'No image uploaded yet',
     'please_select_image' => 'Please select an image',

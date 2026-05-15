@@ -705,7 +705,7 @@ class DashboardController extends Controller
             "provider_banner_amount" => isset($provider_banner->promotion_price) ? (float)$provider_banner->promotion_price : 0,
             "promotional_banner" => isset($provider_banner->promotion_enable) ? (bool)$provider_banner->promotion_enable : false,
             "enable_chat" => isset($other_setting->enable_chat) ? $other_setting->enable_chat : 0,
-            "login_image" => getSingleMedia(AppSetting::first(), 'login_image', false),
+            "login_image" => getAttachments(AppSetting::first()->getMedia('login_image')),
         ];
         if (!empty($request->is_authenticated) && $request->is_authenticated == 1) {
             $response["google_map_key"] = $sitesetup->google_map_keys;
@@ -735,7 +735,7 @@ class DashboardController extends Controller
     public function getLoginImage(Request $request)
     {
         $app_setting = AppSetting::first();
-        $login_image = getSingleMedia($app_setting, 'login_image', false);
+        $login_image = getAttachments($app_setting->getMedia('login_image'));
 
         $response = [
             'status' => true,

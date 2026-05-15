@@ -1,9 +1,10 @@
 <?php
-
+ 
 namespace App\Http\Controllers;
-
+ 
 use Illuminate\Http\Request;
 use App\Models\AppSetting;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class LoginImageController extends Controller
 {
@@ -16,9 +17,9 @@ class LoginImageController extends Controller
             $app_setting = new AppSetting();
             $app_setting->save();
         }
-        $login_image = getSingleMedia($app_setting, 'login_image');
+        $login_images = $app_setting->getMedia('login_image');
         
-        return view('login_image.form', compact('pageTitle', 'auth_user', 'app_setting', 'login_image'));
+        return view('login_image.form', compact('pageTitle', 'auth_user', 'app_setting', 'login_images'));
     }
 
     public function store(Request $request)
@@ -30,10 +31,18 @@ class LoginImageController extends Controller
         }
 
         if ($request->hasFile('login_image')) {
-            $app_setting->clearMediaCollection('login_image');
-            $app_setting->addMediaFromRequest('login_image')->toMediaCollection('login_image');
+            foreach ($request->file('login_image') as $file) {
+                $app_setting->addMedia($file)->toMediaCollection('login_image');
+            }
         }
 
         return redirect()->back()->withSuccess(__('messages.update_form', ['form' => __('messages.login_image')]));
+    }
+
+    public function destroy($id)
+    {
+        $media = Media::findOrFail($id);
+        $media->delete();
+        return redirect()->back()->withSuccess(__('messages.delete_form', ['form' => __('messages.login_image')]));
     }
 }

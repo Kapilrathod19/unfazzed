@@ -427,6 +427,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::post('send-push-notification', [SettingController::class, 'sendPushNotification'])->name('sendPushNotification');
     Route::get('login-image', [App\Http\Controllers\LoginImageController::class, 'index'])->name('login_image.index');
     Route::post('login-image-save', [App\Http\Controllers\LoginImageController::class, 'store'])->name('login_image.store');
+    Route::get('login-image-delete/{id}', [App\Http\Controllers\LoginImageController::class, 'destroy'])->name('login_image.destroy');
     Route::post('save-earning-setting', [SettingController::class, 'saveEarningTypeSetting'])->name('saveEarningTypeSetting');
     Route::post('save-userdashboard-setting', [SettingController::class, 'saveUserDashboardTypeSetting'])->name('saveUserDashboardTypeSetting');
     // Route::post('advance-earning-setting' , [ SettingController::class , 'advanceEarningSetting'])->name('advanceEarningSetting');
