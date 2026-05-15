@@ -29,7 +29,7 @@
                             
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="form-control-label d-block text-left">{{ __('messages.current_images') ?? 'Current Uploaded Images' }}</label>
+                                    <label class="form-control-label d-block text-left">Current Uploaded Images</label>
                                     <div class="row mt-2">
                                         @if(isset($login_images) && count($login_images) > 0)
                                             @foreach($login_images as $image)
