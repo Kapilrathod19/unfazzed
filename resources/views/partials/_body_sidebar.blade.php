@@ -485,7 +485,7 @@
             )
             ->link->attr(['class' => '']); */
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.unverified') .
@@ -504,7 +504,7 @@
 ',
             )
             ->nickname('user')
-            ->data('permission', 'user list');
+            ->data('permission', 'user list'); */
 
         $menu
             ->add(
@@ -778,7 +778,7 @@
             )
             ->link->attr(['class' => '']);
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.list_form_title', ['form' => __('messages.offers_for_you')]) .
@@ -826,7 +826,7 @@
 <path d="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
 </svg>',
             )
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
         $menu
             ->add(__('messages.sidebar_form_title', ['form' => trans('messages.ratings')]), [
@@ -985,7 +985,7 @@
             )
             ->link->attr(['class' => '']);
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.notification_templates') .
@@ -1004,7 +1004,7 @@
             )
             ->nickname('notification_template')
             ->data('role', ['admin', 'demo_admin'])
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
         $menu
             ->add(
@@ -1172,7 +1172,7 @@
             ->data('permission', 'document add')
             ->link->attr(['class' => '']);
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.frontend_setting') .
@@ -1191,7 +1191,7 @@
             )
             ->nickname('frontend_setting')
             ->data('role', ['admin', 'demo_admin'])
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
         $menu
             ->add(
