@@ -50,6 +50,7 @@ Route::get('firebase-detail', [API\DashboardController::class, "firebaseDetails"
 Route::get('login-image', [API\DashboardController::class, "getLoginImage"]);
 Route::get('terms-conditions', [API\DashboardController::class, 'getTermsConditions']);
 Route::get('privacy-policy', [API\DashboardController::class, 'getPrivacyPolicy']);
+Route::get('app-share-link', [API\DashboardController::class, 'getAppShareLink']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

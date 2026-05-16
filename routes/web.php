@@ -428,6 +428,8 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('login-image', [App\Http\Controllers\LoginImageController::class, 'index'])->name('login_image.index');
     Route::post('login-image-save', [App\Http\Controllers\LoginImageController::class, 'store'])->name('login_image.store');
     Route::get('login-image-delete/{id}', [App\Http\Controllers\LoginImageController::class, 'destroy'])->name('login_image.destroy');
+    Route::get('app-share-link', [App\Http\Controllers\AppShareLinkController::class, 'index'])->name('app_share_link.index');
+    Route::post('app-share-link-save', [App\Http\Controllers\AppShareLinkController::class, 'store'])->name('app_share_link.store');
     Route::post('save-earning-setting', [SettingController::class, 'saveEarningTypeSetting'])->name('saveEarningTypeSetting');
     Route::post('save-userdashboard-setting', [SettingController::class, 'saveUserDashboardTypeSetting'])->name('saveUserDashboardTypeSetting');
     // Route::post('advance-earning-setting' , [ SettingController::class , 'advanceEarningSetting'])->name('advanceEarningSetting');

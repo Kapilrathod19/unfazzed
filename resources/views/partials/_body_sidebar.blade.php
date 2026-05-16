@@ -1215,6 +1215,28 @@
         $menu
             ->add(
                 '<span>' .
+                    __('messages.app_share_link') .
+                    '</span><span class="custom-tooltip"><span class="tooltip-text">' .
+                    __('messages.app_share_link') .
+                    '</span></span>',
+                ['route' => 'app_share_link.index', 'class' => 'sidebar-layout'],
+            )
+            ->prepend(
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 12C13 13.6569 11.6569 15 10 15C8.34315 15 7 13.6569 7 12C7 10.3431 8.34315 9 10 9C11.6569 9 13 10.3431 13 12Z" stroke="currentColor" stroke-width="1.5"/>
+<path d="M13 12L18.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13 12L18.5 17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="19" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>
+<circle cx="19" cy="19" r="3" stroke="currentColor" stroke-width="1.5"/>
+</svg>',
+            )
+            ->nickname('app_share_link')
+            ->data('role', ['admin', 'demo_admin'])
+            ->link->attr(['class' => '']);
+
+        $menu
+            ->add(
+                '<span>' .
                     __('messages.Settings') .
                     '</span><span class="custom-tooltip"><span class="tooltip-text">' .
                     __('messages.Settings') .

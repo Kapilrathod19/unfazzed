@@ -706,6 +706,7 @@ class DashboardController extends Controller
             "promotional_banner" => isset($provider_banner->promotion_enable) ? (bool)$provider_banner->promotion_enable : false,
             "enable_chat" => isset($other_setting->enable_chat) ? $other_setting->enable_chat : 0,
             "login_image" => getAttachments(AppSetting::first()->getMedia('login_image')),
+            "app_share_link" => Setting::where('type', 'app_share_link')->where('key', 'app_share_link')->first()->value ?? null,
         ];
         if (!empty($request->is_authenticated) && $request->is_authenticated == 1) {
             $response["google_map_key"] = $sitesetup->google_map_keys;
@@ -768,6 +769,15 @@ class DashboardController extends Controller
             'data' => $privacy_policy
         ];
 
+        return comman_custom_response($response);
+    }
+    public function getAppShareLink(Request $request)
+    {
+        $app_share_link = Setting::where('type', 'app_share_link')->where('key', 'app_share_link')->first();
+        $response = [
+            'status' => true,
+            'app_share_link' => $app_share_link ? $app_share_link->value : null,
+        ];
         return comman_custom_response($response);
     }
 }
