@@ -159,6 +159,11 @@
                             </div>
 
                             <div class="form-group col-md-4">
+                                {{ html()->label(__('messages.service_rating'), 'service_rating')->class('form-control-label') }}
+                                {{ html()->number('service_rating', $servicedata->service_rating ?? 0)->placeholder(__('messages.service_rating'))->class('form-control')->attribute('step', 'any')->attribute('min', 0)->attribute('max', 5) }}
+                            </div>
+
+                            <div class="form-group col-md-4">
                                 <label class="form-control-label" for="service_attachment">{{ __('messages.image') }}
                                     <span class="text-danger">*</span>
                                 </label>
@@ -336,7 +341,7 @@
                             @endif
                         </div>
 
-                        @php
+                        <!-- @php
                             $oldOptions = old('options', []);
                             $optionRows = !empty($oldOptions) ? $oldOptions : (!empty($serviceOptions) ? $serviceOptions : []);
                         @endphp
@@ -411,7 +416,7 @@
                                     <i class="fa fa-plus"></i> {{ __('messages.add') }}
                                 </button>
                             </div>
-                        </div>
+                        </div> -->
 
                         @php
                             $oldHowItDone = old('how_it_done', []);

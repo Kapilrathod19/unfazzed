@@ -85,7 +85,7 @@ class ServiceResource extends JsonResource
             'translations' => ($finalTranslation === '[]' || !$finalTranslation) ? null : $finalTranslation,
             'reject_reason'        => $this->reject_reason,
             'service_request_status'        => $this->service_request_status,
-
+            'service_rating'                => (double) $this->service_rating,
         ];
     }
 }

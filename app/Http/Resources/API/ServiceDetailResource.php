@@ -108,6 +108,7 @@ class ServiceDetailResource extends JsonResource
             'how_it_done' => ServiceHowItDoneResource::collection($this->serviceHowItDone),
             'whats_included' => ServiceWhatsIncludedResource::collection($this->whatsIncluded),
             'whats_not_included' => ServiceWhatsNotIncludedResource::collection($this->whatsNotIncluded),
+            'service_rating'                => (double) $this->service_rating,
         ];
     }
 }

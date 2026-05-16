@@ -160,6 +160,7 @@
     'image_png_gif' => 'Image should be png/PNG, gif/GIF, jpg/JPG & jpeg/JPG.',
     'updated' => 'updated successfully',
     'rating' => 'Rating',
+    'service_rating' => 'Service Rating',
     'onesignal' => 'Onesignal',
     'currency_setting' => 'Currency Setting',
     'razorpay' => 'Razorpay',

@@ -33,6 +33,7 @@ class ServiceRequest extends FormRequest
             'type'                           => 'required',
             'price'                          => 'required|min:0',
             'status'                         => 'required',
+            'service_rating'                 => 'nullable|numeric|min:0|max:5',
         ];
 
         // Only apply SEO validation if SEO is enabled

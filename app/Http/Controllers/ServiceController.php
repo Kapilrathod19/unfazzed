@@ -731,6 +731,7 @@ class ServiceController extends Controller
         if (!empty($request->advance_payment_amount)) {
             $services['advance_payment_amount'] = $request->advance_payment_amount;
         }
+        $services['service_rating'] = !empty($request->service_rating) ? $request->service_rating : 0;
         $result = Service::updateOrCreate(['id' => $request->id], $services);
         if ($request->is('api/*')) {
             $services['translations'] = json_decode($services['translations'] ?? '{}', true);
