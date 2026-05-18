@@ -11,6 +11,8 @@ use Facade\Ignition\DumpRecorder\Dump;
 use Yajra\DataTables\DataTables;
 use App\Models\Booking;
 use App\Models\CommissionEarning;
+use App\Exports\PaymentExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PaymentController extends Controller
 {
@@ -205,6 +207,20 @@ class PaymentController extends Controller
                 $query->where('payment_status', $filter['column_status']);
             }
         }
+        
+        $advanceFilter = $request->advanceFilter;
+        if (isset($advanceFilter)) {
+            if (!empty($advanceFilter['date_range'])) {
+                $dates = explode(' to ', $advanceFilter['date_range']);
+                if (count($dates) === 2) {
+                    $query->whereDate('datetime', '>=', $dates[0])
+                        ->whereDate('datetime', '<=', $dates[1]);
+                } elseif (count($dates) === 1) {
+                    $query->whereDate('datetime', $dates[0]);
+                }
+            }
+        }
+
         if (auth()->user()->hasAnyRole(['admin'])) {
             $query->newQuery();
         }
@@ -283,6 +299,48 @@ class PaymentController extends Controller
         ->addIndexColumn()
         ->rawColumns(['action','check','payment_status','id'])
             ->toJson();
+    }
+
+    public function export(Request $request)
+    {
+        $format = $request->input('format', 'xlsx');
+
+        $validFormats = ['xlsx', 'xls', 'ods', 'csv', 'pdf', 'html'];
+        if (!in_array($format, $validFormats)) {
+            return response()->json(['error' => 'Invalid format selected.'], 400);
+        }
+
+        $columns = json_decode($request->input('columns'), true);
+
+        $query = Payment::query()->myPayment();
+
+        $advanceFilter = $request->advanceFilter;
+        if (isset($advanceFilter)) {
+            if (!empty($advanceFilter['date_range'])) {
+                $dates = explode(' to ', $advanceFilter['date_range']);
+                if (count($dates) === 2) {
+                    $query->whereDate('datetime', '>=', $dates[0])
+                        ->whereDate('datetime', '<=', $dates[1]);
+                } elseif (count($dates) === 1) {
+                    $query->whereDate('datetime', $dates[0]);
+                }
+            }
+        }
+
+        $paymentData = $query->get();
+        if ($paymentData->isEmpty()) {
+            return response()->json(['error' => 'No data found for export.'], 404);
+        }
+
+        $paymentExport = new PaymentExport($columns, $query);
+
+        $filename = 'payments.' . $format;
+
+        if ($format === 'pdf') {
+            return Excel::download($paymentExport, $filename, \Maatwebsite\Excel\Excel::DOMPDF);
+        }
+
+        return Excel::download($paymentExport, $filename, constant('\Maatwebsite\Excel\Excel::' . strtoupper($format)));
     }
 
     /* bulck action method */

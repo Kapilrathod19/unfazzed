@@ -241,6 +241,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('cash-index-data', [PaymentController::class, 'cash_index_data'])->name('cash.index_data');
     Route::get('payment-index-data', [PaymentController::class, 'index_data'])->name('payment.index_data');
     Route::post('payment-bulk-action', [PaymentController::class, 'bulk_action'])->name('payment.bulk-action');
+    Route::post('payment-export', [PaymentController::class, 'export'])->name('payment.export');
     Route::get('cash/history/{id?}', [PaymentController::class, 'cashIndex'])->name('cash.index');
     Route::get('paymenthistory-index-data/{id}', [PaymentController::class, 'paymenthistory_index_data'])->name('paymenthistory.index_data');
     Route::get('cash/approve/{id}', [PaymentController::class, 'cashApprove'])->name('cash.approve');

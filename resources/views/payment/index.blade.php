@@ -20,9 +20,9 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <div class="row justify-content-between gy-3">
-                <div class="col-md-6 col-lg-4 col-xl-3">
-                    <div class="col-md-12">
+            <div class="row align-items-center justify-content-between gy-3">
+                <div class="col-md-6 col-lg-4 col-xl-5">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
                         <form action="{{ route('payment.bulk-action') }}" id="quick-action-form"
                             class="form-disabled d-flex gap-3 align-items-center">
                             @csrf
@@ -33,7 +33,6 @@
                                     <option value="delete">{{ __('messages.delete') }}</option>
                                 </select>
 
-
                                 <button id="quick-action-apply" class="btn btn-primary" data-ajax="true"
                                     data--submit="{{ route('payment.bulk-action') }}" data-datatable="reload"
                                     data-confirmation='true' data-title="{{ __('payment', ['form' => __('payment')]) }}"
@@ -41,44 +40,117 @@
                                     data-message='{{ __('Do you want to perform this action?') }}'
                                     >{{ __('messages.apply') }}</button>
                             @endif
+                        </form>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Export">{{ __('messages.export') }}</button>
                     </div>
-
-                    </form>
                 </div>
-                <div class="col-md-6 col-lg-4 col-xl-3">
-                    <div class="d-flex align-items-center gap-3 justify-content-end">
-                        <div class="d-flex justify-content-end gap-3">
-                            <div class="datatable-filter ml-auto">
-                                <select name="column_status" id="column_status" class="select2 form-select"
-                                    data-filter="select" style="width: 100%">
-                                    <option value="">{{ __('messages.all') }}</option>
-                                    <option value="advanced_paid">{{ __('messages.advanced_paid') }}</option>
-                                    <option value="paid">{{ __('messages.paid') }}</option>
-                                    <option value="pending_by_admin">{{ __('messages.pending_by_admin') }}</option>
-                                    <option value="approved_by_admin">{{ __('messages.approved_by_admin') }}</option>
-                                    <option value="approved_by_provider">{{ __('messages.approved_by_provider') }}
-                                    </option>
-                                    <option value="pending_by_provider">{{ __('messages.pending_by_provider') }}
-                                    </option>
-                                    <option value="send_to_provider">{{ __('messages.send_to_provider') }}</option>
-                                    <option value="approved_by_handyman">{{ __('messages.approved_by_handyman') }}
-                                    </option>
 
-                                </select>
-                            </div>
-                            <div class="input-group input-group-search ms-2">
-                                <span class="input-group-text" id="addon-wrapping"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control dt-search" placeholder="Search..."
-                                    aria-label="Search" aria-describedby="addon-wrapping"
-                                    aria-controls="dataTableBuilder">
-                            </div>
+                <div class="col-md-6 col-lg-8 col-xl-7">
+                    <div class="d-flex justify-content-end gap-2 align-items-center">
+                        <div class="datatable-filter ml-auto">
+                            <select name="column_status" id="column_status" class="select2 form-select"
+                                data-filter="select" style="width: 100%">
+                                <option value="">{{ __('messages.all') }}</option>
+                                <option value="advanced_paid">{{ __('messages.advanced_paid') }}</option>
+                                <option value="paid">{{ __('messages.paid') }}</option>
+                                <option value="pending_by_admin">{{ __('messages.pending_by_admin') }}</option>
+                                <option value="approved_by_admin">{{ __('messages.approved_by_admin') }}</option>
+                                <option value="approved_by_provider">{{ __('messages.approved_by_provider') }}</option>
+                                <option value="pending_by_provider">{{ __('messages.pending_by_provider') }}</option>
+                                <option value="send_to_provider">{{ __('messages.send_to_provider') }}</option>
+                                <option value="approved_by_handyman">{{ __('messages.approved_by_handyman') }}</option>
+                            </select>
                         </div>
+                        <div class="input-group input-group-search ms-2">
+                            <span class="input-group-text" id="addon-wrapping"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control dt-search" placeholder="Search..."
+                                aria-label="Search" aria-describedby="addon-wrapping" aria-controls="dataTableBuilder">
+                        </div>
+                        <button class="btn btn-primary d-flex align-items-center gap-1 btn-group position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+                            <i class="ph ph-funnel"></i>{{ __('messages.filter') }}
+                        </button>
                     </div>
                 </div>
 
                 <div class="table-responsive">
                     <table id="datatable" class="table table-striped border">
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <x-advance-filter>
+        <x-slot name="title">
+            <h4>{{ __('messages.filter_title') }}</h4>
+        </x-slot>
+        <div class="form-group datatable-filter">
+            <label class="form-label" for="date_range">{{ __('messages.daterange_label') }}</label>
+            <input type="text" id="datepicker1" class="form-control flatpickr" placeholder="{{ __('messages.select_date_range') }}" />
+        </div>
+    </x-advance-filter>
+
+    <!-- Modal -->
+    <div class="modal fade" id="Export" tabindex="-1" role="dialog" aria-labelledby="exportModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportModalTitle">{{__('messages.export_data')}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"></span>
+                    </button>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>{{__('messages.select_file_type')}}</label>
+                        <div class="btn-group btn-group-toggle d-flex flex-wrap export-type" data-toggle="buttons">
+                            <label class="btn btn-outline-primary active">
+                                <input type="radio" name="fileType" value="xlsx" checked /> XLSX
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Column Selection -->
+                    <div class="form-group">
+                        <label>{{__('messages.select_column')}}</label>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colID" checked />
+                            <label class="form-check-label" for="colID">{{ __('messages.id') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colService" checked />
+                            <label class="form-check-label" for="colService">{{ __('messages.service') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colUser" checked />
+                            <label class="form-check-label" for="colUser">{{ __('messages.user') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colPaymentType" checked />
+                            <label class="form-check-label" for="colPaymentType">{{ __('messages.payment_type') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colStatus" checked />
+                            <label class="form-check-label" for="colStatus">{{ __('messages.status') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colDateTime" checked />
+                            <label class="form-check-label" for="colDateTime">{{ __('messages.datetime') }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="colTotalAmount" checked />
+                            <label class="form-check-label" for="colTotalAmount">{{ __('messages.total_amount') }}</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                    <button type="button" class="btn btn-primary" id="downloadButton">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="button-text">{{ __('messages.export') }}</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -101,7 +173,10 @@
                         };
                         d.filter = {
                             column_status: $('#column_status').val()
-                        }
+                        };
+                        d.advanceFilter = {
+                            date_range: selectedFilters.date_range
+                        };
                     },
                 },
                 columns: [
@@ -178,7 +253,88 @@
                     processing: "{{ __('messages.processing') }}" // Set your custom processing text
                 }
             });
+            
+            $("#datepicker1").flatpickr({
+                mode: "range",
+                dateFormat: "Y-m-d",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2 || selectedDates.length === 1) {
+                        selectedFilters.date_range = dateStr;
+                        $('#datatable').DataTable().ajax.reload();
+                    }
+                }
+            });
+
+            // Export logic
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                const fileType = document.querySelector('input[name="fileType"]:checked').value;
+                const selectedColumns = [];
+                document.querySelectorAll('.form-check-input:checked').forEach((checkbox) => {
+                    selectedColumns.push(checkbox.id);
+                });
+
+                const formData = new FormData();
+                formData.append('format', fileType);
+                formData.append('columns', JSON.stringify(selectedColumns));
+                formData.append('advanceFilter[date_range]', selectedFilters.date_range || '');
+
+                const buttonText = document.querySelector('.button-text');
+                const spinner = document.querySelector('.spinner-border');
+                const downloadButton = this;
+                downloadButton.disabled = true;
+                spinner.classList.remove('d-none');
+                buttonText.textContent = "Loading...";
+
+                var baseUrl = $('meta[name="baseUrl"]').attr('content') || "{{ url('/') }}";
+
+                fetch(baseUrl+'/payment-export', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: formData,
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json();
+                    }
+                    return response.blob();
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        resetExportModal();
+                        return;
+                    }
+                    const url = window.URL.createObjectURL(data);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Payments.${fileType}`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    $('#Export').modal('hide');
+                    resetExportModal();
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    alert('Failed to export data. Please try again.');
+                    resetExportModal();
+                });
+            });
+
+            function resetExportModal() {
+                const downloadButton = document.getElementById('downloadButton');
+                const spinner = document.querySelector('.spinner-border');
+                const buttonText = document.querySelector('.button-text');
+                downloadButton.disabled = false;
+                spinner.classList.add('d-none');
+                buttonText.textContent = "{{ __('messages.export') }}";
+            }
         });
+
+        let selectedFilters = {
+            date_range: ''
+        };
 
 
         $(document).ready(function() {
