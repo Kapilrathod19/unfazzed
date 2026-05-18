@@ -64,6 +64,7 @@ class EarningController extends Controller
                     ->whereHas('getbooking', function ($query) {
                         $query->where('status', 'completed');
                     })
+                    ->whereIn('commission_status', ['paid', 'unpaid'])
                     ->whereIn('user_type', ['provider', 'handyman'])
                     ->sum('commission_amount');
 
@@ -97,7 +98,10 @@ class EarningController extends Controller
             ->editColumn('total_bookings', function ($row) {
                 $commissionData = $row->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['unpaid','paid'])
                     ->where('user_type', 'provider');
@@ -180,7 +184,10 @@ class EarningController extends Controller
             foreach($providers as $provider){
                 $commissionData = $provider->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['unpaid','paid'])
                     ->where('user_type', 'provider');
@@ -210,37 +217,17 @@ class EarningController extends Controller
 
                     }
                 }
-                $providerCommissionData = $provider->commission_earning()
+                $total_provider_earning = CommissionEarning::where('employee_id', $provider->id)
                     ->whereHas('getbooking', function ($query) {
                         $query->where('status', 'completed');
                     })
-                    ->where('commission_status', 'unpaid')
-                    ->where('user_type', 'provider')->get();
-                    $providerDueAmount = 0;
-                if($providerCommissionData->count() > 0){
-                    foreach ($providerCommissionData as $commission) {
-                        if ($commission != null) {
-                            // Fetch commission data for related bookings including handyman
-                            $provider_commission_data = CommissionEarning::where('booking_id', $commission->booking_id)
-                            ->whereIn('user_type', ['provider', 'handyman'])
-                            ->where('commission_status', 'unpaid')
-                            ->get();
-
-                                    if ($provider_commission_data) {
-                                        foreach ($provider_commission_data as $data) {
-                                            if (isset($data->commission_amount)) {
-                                                $providerDueAmount += $data->commission_amount;
-                                            }
-                                        }
-                                    }
-                        }
-                    }
-                }
-
-
+                    ->whereIn('commission_status', ['paid', 'unpaid'])
+                    ->whereIn('user_type', ['provider', 'handyman'])
+                    ->sum('commission_amount');
 
                 $provider_paid_earning = ProviderPayout::where('provider_id',$provider->id)->sum('amount');
                 $provider_paid_earning = $provider_paid_earning ?? 0;
+                $providerDueAmount = $total_provider_earning - $provider_paid_earning;
                 $totalEarning = $totalEarning ? $totalEarning : 0;
 
                 $adminEarning = $adminEarning ? $adminEarning : 0;

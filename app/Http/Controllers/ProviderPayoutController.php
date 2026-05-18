@@ -175,6 +175,11 @@ class ProviderPayoutController extends Controller
     /* ================= CREATE PAYOUT ENTRY ================= */
     $result = ProviderPayout::create($data);
 
+    /* ================= UPDATE COMMISSION STATUS ================= */
+    CommissionEarning::where('employee_id', $provider_id)
+        ->where('commission_status', 'unpaid')
+        ->update(['commission_status' => 'paid']);
+
     /* ================= WALLET DEBIT LOGIC ================= */
     $wallet = Wallet::where('user_id', $provider_id)->first();
     if ($wallet) {
