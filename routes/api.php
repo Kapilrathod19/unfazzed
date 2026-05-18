@@ -48,6 +48,7 @@ Route::get('coupon-list', [API\CouponController::class, 'getCouponList']);
 Route::post('configurations', [API\DashboardController::class, "configurations"]);
 Route::get('firebase-detail', [API\DashboardController::class, "firebaseDetails"]);
 Route::get('login-image', [API\DashboardController::class, "getLoginImage"]);
+Route::get('carousel-images', [API\DashboardController::class, "getCarouselImage"]);
 Route::get('terms-conditions', [API\DashboardController::class, 'getTermsConditions']);
 Route::get('privacy-policy', [API\DashboardController::class, 'getPrivacyPolicy']);
 Route::get('app-share-link', [API\DashboardController::class, 'getAppShareLink']);

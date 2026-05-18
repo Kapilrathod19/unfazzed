@@ -746,6 +746,19 @@ class DashboardController extends Controller
         return comman_custom_response($response);
     }
 
+    public function getCarouselImage(Request $request)
+    {
+        $app_setting = AppSetting::first();
+        $carousel_images = getAttachments($app_setting->getMedia('carousel_image'));
+
+        $response = [
+            'status' => true,
+            'carousel_images' => $carousel_images,
+        ];
+
+        return comman_custom_response($response);
+    }
+
     public function getTermsConditions(Request $request)
     {
         $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');

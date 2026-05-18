@@ -428,6 +428,12 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('login-image', [App\Http\Controllers\LoginImageController::class, 'index'])->name('login_image.index');
     Route::post('login-image-save', [App\Http\Controllers\LoginImageController::class, 'store'])->name('login_image.store');
     Route::get('login-image-delete/{id}', [App\Http\Controllers\LoginImageController::class, 'destroy'])->name('login_image.destroy');
+    
+    // Carousel Images Route
+    Route::get('carousel', [App\Http\Controllers\CarouselController::class, 'index'])->name('carousel.index');
+    Route::post('carousel-save', [App\Http\Controllers\CarouselController::class, 'store'])->name('carousel.store');
+    Route::get('carousel-delete/{id}', [App\Http\Controllers\CarouselController::class, 'destroy'])->name('carousel.destroy');
+
     Route::get('app-share-link', [App\Http\Controllers\AppShareLinkController::class, 'index'])->name('app_share_link.index');
     Route::post('app-share-link-save', [App\Http\Controllers\AppShareLinkController::class, 'store'])->name('app_share_link.store');
     Route::post('save-earning-setting', [SettingController::class, 'saveEarningTypeSetting'])->name('saveEarningTypeSetting');
