@@ -83,17 +83,17 @@ window.renderedDataTable = $('#datatable').DataTable({
                 name: 'payment_method',
                 title: "{{ __('messages.payment_method') }}"
             },
-            {
-                data: 'bank_name',
-                name: 'bank_name',
-                title: "{{ __('messages.bank_name') }}",
-                orderable: false,
-            },
-            {
-                data: 'description',
-                name: 'description',
-                title: "{{ __('messages.description') }}"
-            },
+            // {
+            //     data: 'bank_name',
+            //     name: 'bank_name',
+            //     title: "{{ __('messages.bank_name') }}",
+            //     orderable: false,
+            // },
+            // {
+            //     data: 'description',
+            //     name: 'description',
+            //     title: "{{ __('messages.description') }}"
+            // },
             {
                 data: 'created_at',
                 name: 'created_at',
