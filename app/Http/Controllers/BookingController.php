@@ -664,24 +664,22 @@ class BookingController extends Controller
     // -------------------------------------------
     // ADDRESS SNAPSHOT (NO ERROR EVER)
     // -------------------------------------------
-    if (count($serviceZone) == 0) {
-        if ($bookingAddress) {
-            // mapping se address
-            $result->addressAdded()->create([
-                'booking_id' => $result->id,
-                'address' => $bookingAddress->address,
-                'latitude' => $bookingAddress->latitude,
-                'longitude' => $bookingAddress->longitude,
-            ]);
-        } else {
-            // fallback → request wale address se snapshot
-            $result->addressAdded()->create([
-                'booking_id' => $result->id,
-                'address' => $request->address ?? '',
-                'latitude' => $request->latitude ?? null,
-                'longitude' => $request->longitude ?? null,
-            ]);
-        }
+    if ($bookingAddress) {
+        // mapping se address
+        $result->addressAdded()->create([
+            'booking_id' => $result->id,
+            'address' => $bookingAddress->address,
+            'latitude' => $bookingAddress->latitude,
+            'longitude' => $bookingAddress->longitude,
+        ]);
+    } else {
+        // fallback → request wale address se snapshot
+        $result->addressAdded()->create([
+            'booking_id' => $result->id,
+            'address' => $request->address ?? '',
+            'latitude' => $request->latitude ?? null,
+            'longitude' => $request->longitude ?? null,
+        ]);
     }
 
     // -------------------------------------------

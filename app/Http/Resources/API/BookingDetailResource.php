@@ -44,7 +44,9 @@ class BookingDetailResource extends JsonResource
         }
         return [
             'id'                 => $this->id,
-            'address'            => $this->address,
+            'address'            => optional($this->addressAdded)->address ?? $this->address,
+            'latitude'           => optional($this->addressAdded)->latitude,
+            'longitude'          => optional($this->addressAdded)->longitude,
             'customer_id'        => $this->customer_id,
             'service_id'         => $this->service_id,
             'provider_id'        => $this->provider_id,
