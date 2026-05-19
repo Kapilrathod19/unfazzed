@@ -361,7 +361,7 @@ class DashboardController extends Controller
         $provider = User::find(auth()->user()->id);
 
         $booking = Booking::myBooking();
-        $total_booking = $booking->count();
+        $total_booking = $booking->where('status', 'completed')->count();
 
         $service = Service::myService()->where('status', 1);
         $total_service = $service->count();
