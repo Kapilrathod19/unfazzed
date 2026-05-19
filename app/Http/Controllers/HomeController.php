@@ -120,9 +120,6 @@ class HomeController extends Controller
             ->whereIn('commission_status', ['unpaid', 'paid'])
             ->sum('commission_amount') ?? 0;
         $data['total_earning'] += $promotionalBannerAmount + $data['cancellationcharge'] + $data['total_subscription_amout'];
-
-
-        $data['total_earning'] += $data['cancellationcharge'] + $data['total_subscription_amout'];
         // dd($data);
 
         //     $data['total_revenue'] = getPriceFormat($total_revenue);
