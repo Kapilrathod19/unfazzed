@@ -59,6 +59,12 @@
                             </div>
                     
                             <div class="form-group col-md-4">
+                                {{ html()->label('UPI ID', 'upi_id')->class('form-control-label')}}
+                                {{ html()->text('upi_id',$bankdata->upi_id)->placeholder('UPI ID')->class('form-control')}}
+                                <small class="help-block with-errors text-danger"></small>
+                            </div>
+                    
+                            <div class="form-group col-md-4">
                                 {{ html()->label(trans('messages.status') . ' <span class="text-danger">*</span>', 'status')->class('form-control-label')}}
                                 {{ html()->select('status', ['1' => __('messages.active'), '0' => __('messages.inactive')],$bankdata->status)->class('form-select select2js')->required()}}
                             </div>

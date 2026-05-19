@@ -46,10 +46,11 @@
                                 <div class="card-body">
                                     {{-- <h6 class="card-title">{{ __('messages.bank_name', ['select' => __('messages.bank_details')]) }}</h6> --}}
                                     <div class="row">
-                                        <div class="col-md-3"><strong>Bank Name:</strong> <span id="display_bank_name"></span></div>
-                                        <div class="col-md-3"><strong>Provider Name:</strong> <span id="display_branch_name"></span></div>
-                                        <div class="col-md-3"><strong>Account No:</strong> <span id="display_account_no"></span></div>
-                                        <div class="col-md-3"><strong>IFSC Code:</strong> <span id="display_ifsc_no"></span></div>
+                                        <div class="col-md-4 mb-2"><strong>Bank Name:</strong> <span id="display_bank_name"></span></div>
+                                        <div class="col-md-4 mb-2"><strong>Provider Name:</strong> <span id="display_branch_name"></span></div>
+                                        <div class="col-md-4 mb-2"><strong>Account No:</strong> <span id="display_account_no"></span></div>
+                                        <div class="col-md-4 mb-2"><strong>IFSC Code:</strong> <span id="display_ifsc_no"></span></div>
+                                        <div class="col-md-4 mb-2"><strong>UPI ID:</strong> <span id="display_upi_id"></span></div>
                                     </div>
                                 </div>
                             </div>
@@ -109,6 +110,7 @@
                                 $('#display_branch_name').text(result.branch_name || '-');
                                 $('#display_account_no').text(result.account_no || '-');
                                 $('#display_ifsc_no').text(result.ifsc_no || '-');
+                                $('#display_upi_id').text(result.upi_id || '-');
                                 $('#bank_details_display').removeClass('d-none');
                             } else {
                                 $('#bank_details_display').addClass('d-none');
