@@ -25,6 +25,7 @@ class BankResource extends JsonResource
             'aadhar_no'         => $this->aadhar_no,
             'pan_no'         => $this->pan_no,
             'is_default'   =>$this->is_default,
+            'upi_id'         => $this->upi_id,
         ];
     }
 }
