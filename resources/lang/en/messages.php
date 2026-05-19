@@ -168,6 +168,7 @@
     'right' => 'Right',
     'pending' => 'Pending',
     'paid' => 'Paid',
+    'advance_refund' => 'Advance Refund',
     'failed' => 'Failed',
     'refunded' => 'Refunded',
     'payment_completed' => 'Your payment has been successfully completed',
