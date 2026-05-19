@@ -238,22 +238,7 @@
                             <label>{{__('messages.select_file_type')}}</label>
                             <div class="btn-group btn-group-toggle d-flex flex-wrap export-type" data-toggle="buttons">
                                 <label class="btn btn-outline-primary active">
-                                    <input type="radio" name="fileType" value="xlsx" /> XLSX
-                                </label>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="fileType" value="xls" /> XLS
-                                </label>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="fileType" value="ods" /> ODS
-                                </label>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="fileType" value="csv" /> CSV
-                                </label>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="fileType" value="pdf" checked /> PDF
-                                </label>
-                                <label class="btn btn-outline-primary">
-                                    <input type="radio" name="fileType" value="html" /> HTML
+                                    <input type="radio" name="fileType" value="xlsx" checked /> XLSX
                                 </label>
                             </div>
                         </div>
@@ -693,9 +678,9 @@ console.log(data);
 
             // Add reset functionality for Export modal
             function resetExportModal() {
-                // Reset file type radio buttons - set PDF as default
+                // Reset file type radio buttons - set XLSX as default
                 document.querySelectorAll('input[name="fileType"]').forEach(radio => {
-                    radio.checked = radio.value === 'pdf';
+                    radio.checked = radio.value === 'xlsx';
                 });
 
                 // Reset all column checkboxes to checked
@@ -738,6 +723,27 @@ console.log(data);
                 const formData = new FormData();
                 formData.append('format', fileType);
                 formData.append('columns', JSON.stringify(selectedColumns));
+
+                formData.append('advanceFilter[date_range]', selectedFilters.date_range || '');
+                
+                const filterArrays = ['booking_status', 'payment_status', 'payment_type'];
+                filterArrays.forEach(function(filter) {
+                    if (selectedFilters[filter] && selectedFilters[filter].length > 0) {
+                        selectedFilters[filter].forEach((val, index) => {
+                            formData.append(`advanceFilter[${filter}][${index}]`, val);
+                        });
+                    }
+                });
+
+                const selectArrays = ['customer_id', 'service_id', 'provider_id', 'handyman_id'];
+                selectArrays.forEach(function(select) {
+                    const val = $('#' + select).val();
+                    if (val && val.length > 0) {
+                        val.forEach((v, index) => {
+                            formData.append(`advanceFilter[${select}][${index}]`, v);
+                        });
+                    }
+                });
 
                 // Disable the button and show the loading spinner
                 const buttonText = document.querySelector('.button-text');
