@@ -784,6 +784,7 @@ class DashboardController extends Controller
 
         return comman_custom_response($response);
     }
+    
     public function getAppShareLink(Request $request)
     {
         $app_share_link = Setting::where('type', 'app_share_link')->where('key', 'app_share_link')->first();
@@ -793,6 +794,7 @@ class DashboardController extends Controller
         ];
         return comman_custom_response($response);
     }
+
     public function getHelpSupport(Request $request)
     {
         $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
@@ -801,6 +803,19 @@ class DashboardController extends Controller
         $response = [
             'status' => true,
             'data' => $help_support
+        ];
+
+        return comman_custom_response($response);
+    }
+
+    public function getRefundCancellationPolicy(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $refund_policy = Setting::getValueByKey('refund_cancellation_policy', 'refund_cancellation_policy', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $refund_policy
         ];
 
         return comman_custom_response($response);

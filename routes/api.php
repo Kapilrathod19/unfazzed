@@ -52,6 +52,7 @@ Route::get('carousel-images', [API\DashboardController::class, "getCarouselImage
 Route::get('terms-conditions', [API\DashboardController::class, 'getTermsConditions']);
 Route::get('privacy-policy', [API\DashboardController::class, 'getPrivacyPolicy']);
 Route::get('help-support', [API\DashboardController::class, 'getHelpSupport']);
+Route::get('refund-cancellation-policy', [API\DashboardController::class, 'getRefundCancellationPolicy']);
 Route::get('app-share-link', [API\DashboardController::class, 'getAppShareLink']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
