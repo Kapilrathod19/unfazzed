@@ -793,4 +793,16 @@ class DashboardController extends Controller
         ];
         return comman_custom_response($response);
     }
+    public function getHelpSupport(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $help_support = Setting::getValueByKey('help_support', 'help_support', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $help_support
+        ];
+
+        return comman_custom_response($response);
+    }
 }
