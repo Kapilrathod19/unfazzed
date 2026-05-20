@@ -53,6 +53,8 @@ Route::get('terms-conditions', [API\DashboardController::class, 'getTermsConditi
 Route::get('privacy-policy', [API\DashboardController::class, 'getPrivacyPolicy']);
 Route::get('help-support', [API\DashboardController::class, 'getHelpSupport']);
 Route::get('refund-cancellation-policy', [API\DashboardController::class, 'getRefundCancellationPolicy']);
+Route::get('data-deletion-request', [API\DashboardController::class, 'getDataDeletionRequest']);
+Route::get('about-us', [API\DashboardController::class, 'getAboutUs']);
 Route::get('app-share-link', [API\DashboardController::class, 'getAppShareLink']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

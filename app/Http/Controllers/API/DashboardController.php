@@ -820,4 +820,28 @@ class DashboardController extends Controller
 
         return comman_custom_response($response);
     }
+    public function getDataDeletionRequest(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $data_deletion_request = Setting::getValueByKey('data_deletion_request', 'data_deletion_request', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $data_deletion_request
+        ];
+
+        return comman_custom_response($response);
+    }
+    public function getAboutUs(Request $request)
+    {
+        $headerValue = $request->header('language-code') ?? session()->get('locale', 'en');
+        $about_us = Setting::getValueByKey('about_us', 'about_us', $headerValue);
+
+        $response = [
+            'status' => true,
+            'data' => $about_us
+        ];
+
+        return comman_custom_response($response);
+    }
 }
