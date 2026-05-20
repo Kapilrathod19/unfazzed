@@ -153,14 +153,14 @@
                         title: "{{ __('messages.address') }}",
                         orderable: false,
                     },
-                    @if ($list_status !== 'all' && $list_status !== 'unverified')
+                    /* @if ($list_status !== 'all' && $list_status !== 'unverified')
                         {
                             data: 'wallet',
                             name: 'wallet',
                             title: "{{ __('messages.wallet_amt') }}",
                             orderable: false,
                         },
-                    @endif {
+                    @endif */ {
                         data: 'status',
                         name: 'status',
                         title: "{{ __('messages.status') }}"
