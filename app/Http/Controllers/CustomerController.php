@@ -64,6 +64,8 @@ class CustomerController extends Controller
         $query->whereIn('user_type', $usertype)->where('is_email_verified', 0);
     } else {
         $query->where('user_type', 'user');
+        // Filter default customer list to show only users who have created bookings
+        $query->whereHas('booking');
     }
 
     $datatable = $datatable->eloquent($query)
