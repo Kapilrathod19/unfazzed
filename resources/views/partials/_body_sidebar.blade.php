@@ -937,6 +937,7 @@
                 ->nickname('plan')
                 ->data('permission', 'plan list');
         }
+        /*
         $menu
             ->add(
                 '<span>' .
@@ -956,7 +957,7 @@
             )
             ->nickname('tax')
             ->data('permission', 'tax list');
-
+        */
         if (optional($othersetting)->blog == 1) {
             $menu
                 ->add(

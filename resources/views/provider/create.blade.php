@@ -124,6 +124,7 @@
                                 ->attribute('data-placeholder', __('messages.select_name', ['select' =>
                                 __('messages.city')])) }}
                             </div>
+                            {{--
                             <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.tax')]),
                                 'tax_id')->class('form-control-label') }}
@@ -135,6 +136,7 @@
                                 ->attribute('data-placeholder', __('messages.select_name', ['select' =>
                                 __('messages.tax')])) }}
                             </div>
+                            --}}
                             <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.category')]),
                                 'category_ids')->class('form-control-label') }}
@@ -264,7 +266,8 @@
                 placeholder: "{{ __('messages.select_name', ['select' => __('messages.service_zone')]) }}"
             });
 
-            getTax(provider_id, provider_tax_id)
+            // Taxes field is hidden in provider create UI, so tax load is disabled
+            // getTax(provider_id, provider_tax_id)
             stateName(country_id, state_id);
             $(document).on('change', '#country_id', function() {
                 var country = $(this).val();
