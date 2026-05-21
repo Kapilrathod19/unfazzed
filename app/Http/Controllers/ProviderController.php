@@ -360,7 +360,10 @@ class ProviderController extends Controller
         if ($providerdata !== null) {
             $commissionData = $providerdata->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->where('commission_status', 'unpaid')
                 ->where('user_type', 'provider')

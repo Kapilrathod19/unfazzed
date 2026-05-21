@@ -1179,6 +1179,12 @@ function adminEarning()
     $commissionData = \App\Models\CommissionEarning::selectRaw('sum(commission_amount) as total, DATE_FORMAT(updated_at, "%m") as month')
         ->whereYear('updated_at', date('Y'))
         ->whereIn('commission_status', ['paid', 'unpaid'])
+        ->whereHas('getbooking', function ($query) {
+            $query->where('status', 'completed')
+                  ->whereHas('payment', function ($q) {
+                      $q->where('payment_status', 'paid');
+                  });
+        })
         ->groupBy('month')
         ->get()
         ->keyBy('month')

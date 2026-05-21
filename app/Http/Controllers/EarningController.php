@@ -62,7 +62,10 @@ class EarningController extends Controller
                 // Total Provider Earnings
                 $total_provider_earning = CommissionEarning::where('employee_id', $provider_id)
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['paid', 'unpaid'])
                     ->whereIn('user_type', ['provider', 'handyman'])
@@ -119,7 +122,10 @@ class EarningController extends Controller
             ->editColumn('total_earning', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'provider');
@@ -142,7 +148,10 @@ class EarningController extends Controller
             ->editColumn('admin_earning', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'provider');
@@ -219,7 +228,10 @@ class EarningController extends Controller
                 }
                 $total_provider_earning = CommissionEarning::where('employee_id', $provider->id)
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['paid', 'unpaid'])
                     ->whereIn('user_type', ['provider', 'handyman'])
@@ -297,7 +309,10 @@ class EarningController extends Controller
 
                 $commissionData = $row->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->where('commission_status', 'unpaid')
                     ->where('user_type', 'handyman');
@@ -333,7 +348,10 @@ class EarningController extends Controller
             ->editColumn('total_bookings', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'handyman');
@@ -351,7 +369,10 @@ class EarningController extends Controller
             ->editColumn('total_earning', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'handyman');
@@ -370,7 +391,10 @@ class EarningController extends Controller
             ->editColumn('admin_earning', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'handyman');
@@ -402,7 +426,10 @@ class EarningController extends Controller
             ->editColumn('provider_earning', function ($row) {
                 $commissionData = $row->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->whereIn('commission_status', ['unpaid','paid'])
                 ->where('user_type', 'handyman');
@@ -439,7 +466,10 @@ class EarningController extends Controller
             foreach($handymen_list as $handyman){
                 $commissionData = $handyman->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['unpaid','paid'])
                     ->where('user_type', 'handyman');
@@ -471,7 +501,10 @@ class EarningController extends Controller
 
                 $handymanCommissionData = $handyman->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->where('commission_status', 'unpaid')
                     ->where('user_type', 'handyman')->get();
@@ -498,7 +531,10 @@ class EarningController extends Controller
 
                 $providercommissionData = $handyman->commission_earning()
                     ->whereHas('getbooking', function ($query) {
-                        $query->where('status', 'completed');
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
                     ->whereIn('commission_status', ['paid','unpaid'])
                     ->where('user_type', 'handyman')->get();

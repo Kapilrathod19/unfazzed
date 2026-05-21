@@ -500,7 +500,10 @@ class HandymanController extends Controller
         $totalWithdrawn = HandymanPayout::where('handyman_id', $id)->sum('amount') ?? 0;
         $pendingCommission = $handymandata->commission_earning()
             ->whereHas('getbooking', function ($query) {
-                $query->where('status', 'completed');
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
             })
             ->where('commission_status', 'unpaid')
             ->sum('commission_amount');

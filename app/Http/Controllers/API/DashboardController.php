@@ -382,7 +382,10 @@ class DashboardController extends Controller
 
         $total_provider_earning = CommissionEarning::where('employee_id', $provider->id)
             ->whereHas('getbooking', function ($query) {
-                $query->where('status', 'completed');
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
             })
             ->whereIn('user_type', ['provider', 'handyman'])
             ->sum('commission_amount');
@@ -500,7 +503,15 @@ class DashboardController extends Controller
         $commission = HandymanType::where('id', $handyman->handymantype_id)->first();
 
         $total_revenue    = HandymanPayout::where('handyman_id', auth()->user()->id)->sum('amount') ?? 0;
-        $remaining_payout  = CommissionEarning::where('employee_id', $handyman->id)->where('commission_status', 'unpaid')->sum('commission_amount') ?? 0;
+        $remaining_payout  = CommissionEarning::where('employee_id', $handyman->id)
+            ->where('commission_status', 'unpaid')
+            ->whereHas('getbooking', function ($query) {
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
+            })
+            ->sum('commission_amount') ?? 0;
 
         $revenuedata = HandymanPayout::selectRaw('sum(amount) as total , DATE_FORMAT(updated_at , "%m") as month')
             ->where('handyman_id', auth()->user()->id)
@@ -565,10 +576,20 @@ class DashboardController extends Controller
         $totalProviders = User::where('user_type', 'provider')->withTrashed()->count();
 
         $general_setting = Setting::getValueByKey('general-setting', 'general-setting');
-        $total_tax  =    Booking::with('commissionsdata')->whereHas('commissionsdata', function ($query) {
-            $query->whereIn('commission_status', ['unpaid', 'paid'])->groupBy('booking_id');
-        })->sum('final_total_tax') ?? 0;
-        $my_earning  =    CommissionEarning::whereIn('user_type', ['admin', 'demo_admin'])->whereIn('commission_status', ['unpaid', 'paid'])->sum('commission_amount') ?? 0;
+        $total_tax  =    Booking::where('status', 'completed')
+            ->whereHas('payment', function ($q) {
+                $q->where('payment_status', 'paid');
+            })
+            ->sum('final_total_tax') ?? 0;
+        $my_earning  =    CommissionEarning::whereIn('user_type', ['admin', 'demo_admin'])
+            ->whereIn('commission_status', ['unpaid', 'paid'])
+            ->whereHas('getbooking', function ($query) {
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
+            })
+            ->sum('commission_amount') ?? 0;
         $response = [
             'status'                        => true,
             'total_booking'                 => Booking::myBooking()->count(),
@@ -576,7 +597,14 @@ class DashboardController extends Controller
             'total_provider'                => $totalProviders,
             'total_tax'                     => $total_tax,
             'my_earning'                    => $my_earning,
-            'total_revenue'                 => CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])->sum('commission_amount') ?? 0,
+            'total_revenue'                 => CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])
+                ->whereHas('getbooking', function ($query) {
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
+                })
+                ->sum('commission_amount') ?? 0,
             'monthly_revenue'               => adminEarning(),
             'provider'                      => UserResource::collection(User::myUsers('get_provider')->orderBy('id', 'DESC')->take(5)->get()),
             'user'                          => UserResource::collection(User::myUsers('get_customer')->orderBy('id', 'DESC')->take(5)->get()),

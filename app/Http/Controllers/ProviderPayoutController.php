@@ -133,7 +133,10 @@ class ProviderPayoutController extends Controller
         // Calculate Total Provider Earnings (from completed bookings)
         $total_provider_earning = CommissionEarning::where('employee_id', $id)
             ->whereHas('getbooking', function ($query) {
-                $query->where('status', 'completed');
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
             })
             ->whereIn('user_type', ['provider', 'handyman'])
             ->sum('commission_amount');

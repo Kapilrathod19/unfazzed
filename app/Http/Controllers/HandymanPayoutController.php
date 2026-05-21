@@ -126,7 +126,10 @@ class HandymanPayoutController extends Controller
 
         $commissionData = $handymandata->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->where('commission_status', 'unpaid')
                 ->where('user_type', 'handyman');

@@ -75,7 +75,14 @@ class HomeController extends Controller
         ];
 
         //$data['total_revenue'] = Payment::whereIn('payment_status', ['paid', 'advanced_paid'])->sum('total_amount');
-        $data['CommissionEarning'] = CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])->sum('commission_amount');
+        $data['CommissionEarning'] = CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])
+            ->whereHas('getbooking', function ($query) {
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
+            })
+            ->sum('commission_amount');
         $data['cancellationcharge'] = Booking::where('status', 'cancelled')->sum('cancellation_charge_amount');
         $data['total_subscription_amout'] = SubscriptionTransaction::where('payment_status', 'paid')->sum('amount');
         $promotionalBannerAmount = PromotionalBanner::where('payment_status', 'paid')->sum('total_amount');
@@ -111,13 +118,21 @@ class HomeController extends Controller
             $data['currency_data'] = currency_data();
         }
 
-        $data['total_tax']  =    Booking::with('commissionsdata')->whereHas('commissionsdata', function ($query) {
-            $query->whereIn('commission_status', ['unpaid', 'paid'])->groupBy('booking_id');
-        })->sum('final_total_tax') ?? 0;
+        $data['total_tax']  =    Booking::where('status', 'completed')
+            ->whereHas('payment', function ($q) {
+                $q->where('payment_status', 'paid');
+            })
+            ->sum('final_total_tax') ?? 0;
         // $data['total_earning']  = CommissionEarning::whereIn('user_type',['admin', 'demo_admin'])->whereIn('commission_status', ['unpaid','paid'])->sum('commission_amount') ?? 0;
         $promotionalBannerAmount = PromotionalBanner::where('payment_status', 'paid')->sum('total_amount');
         $data['total_earning']  = CommissionEarning::whereIn('user_type', ['admin', 'demo_admin'])
             ->whereIn('commission_status', ['unpaid', 'paid'])
+            ->whereHas('getbooking', function ($query) {
+                $query->where('status', 'completed')
+                      ->whereHas('payment', function ($q) {
+                          $q->where('payment_status', 'paid');
+                      });
+            })
             ->sum('commission_amount') ?? 0;
         $data['total_earning'] += $promotionalBannerAmount + $data['cancellationcharge'] + $data['total_subscription_amout'];
         // dd($data);
@@ -135,7 +150,10 @@ class HomeController extends Controller
             $user = User::with('commission_earning')->where('id', $user->id)->where('user_type', 'provider')->first();
             $commissions = $user->commission_earning()
                 ->whereHas('getbooking', function ($query) {
-                    $query->where('status', 'completed');
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
                 })
                 ->where('commission_status', 'unpaid')
                 ->pluck('booking_id'); // Get all booking IDs
@@ -154,7 +172,15 @@ class HomeController extends Controller
             $data['remaining_payout']  = $ProviderEarning;
             $data['total_earning']  = ProviderPayout::where('provider_id', $user->id)->sum('amount') ?? 0;
         } elseif ($user->hasRole('handyman')) {
-            $data['remaining_payout']  = CommissionEarning::where('employee_id', $user->id)->where('commission_status', 'unpaid')->sum('commission_amount') ?? 0;
+            $data['remaining_payout']  = CommissionEarning::where('employee_id', $user->id)
+                ->where('commission_status', 'unpaid')
+                ->whereHas('getbooking', function ($query) {
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
+                })
+                ->sum('commission_amount') ?? 0;
             $data['total_earning']  = HandymanPayout::where('handyman_id', $user->id)->sum('amount') ?? 0;
         }
 
