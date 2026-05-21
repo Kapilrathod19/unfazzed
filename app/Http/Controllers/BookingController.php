@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CommissionEarning;
+use App\Models\SubscriptionTransaction;
+use App\Models\PromotionalBanner;
+
 use App\Exports\BookingExport;
 use Illuminate\Http\Request;
 use App\Models\Booking;
@@ -55,39 +59,47 @@ class BookingController extends Controller
         $handyman_id = '';
         $customer_id = '';
 
-        // Calculate total earnings based on role
+        // Calculate total earnings based on role - matching admin dashboard total_revenue logic
         $advanceFilter = ['paymentStatus' => ['paid', 'pending', 'advance_paid', 'advance_refund']];
         $paymentStatus = ['paid', 'pending', 'advanced_paid', 'Advanced Refund'];
         $paymentType = PaymentGateway::where('status', 1)->get()->pluck('title', 'type')->put('wallet', 'Wallet');
         $bookingStatus = BookingStatus::where('status', 1)->orderBy('sequence', 'ASC')->get()->pluck('label', 'value');
         switch ($authRole) {
             case 'admin':
-                $totalEarning = Booking::where('status', '!=', 'cancelled')
-                    ->whereHas('handymanAdded', function ($query) {
-                        $query->whereNotNull('provider_id'); // Ensure handyman is not null
-                    })
-                    ->sum('total_amount');
-                break;
             case 'demo_admin':
-                $totalEarning = Booking::where('status', '!=', 'cancelled')
-                    ->whereHas('handymanAdded', function ($query) {
-                        $query->whereNotNull('provider_id'); // Ensure handyman is not null
+                // Match admin dashboard total_revenue: CommissionEarning + cancellation + subscription + promotional
+                $commissionEarning = CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])
+                    ->whereHas('getbooking', function ($query) {
+                        $query->where('status', 'completed')
+                              ->whereHas('payment', function ($q) {
+                                  $q->where('payment_status', 'paid');
+                              });
                     })
-                    ->sum('total_amount');
+                    ->sum('commission_amount');
+                $cancellationCharge = Booking::where('status', 'cancelled')->sum('cancellation_charge_amount');
+                $subscriptionAmount = SubscriptionTransaction::where('payment_status', 'paid')->sum('amount');
+                $promotionalBannerAmount = PromotionalBanner::where('payment_status', 'paid')->sum('total_amount');
+                $totalEarning = $commissionEarning + $cancellationCharge + $subscriptionAmount + $promotionalBannerAmount;
                 break;
-
 
             case 'provider':
-                $totalEarning = Booking::where('status', '!=', 'cancelled')->whereHas('handymanAdded', function ($query) use ($auth_user) {
-                    $query->where('provider_id', $auth_user->id);
-                })->sum('total_amount');
+                $totalEarning = Booking::where('status', 'completed')
+                    ->whereHas('payment', function ($q) {
+                        $q->where('payment_status', 'paid');
+                    })
+                    ->whereHas('handymanAdded', function ($query) use ($auth_user) {
+                        $query->where('provider_id', $auth_user->id);
+                    })->sum('total_amount');
                 break;
 
-
             case 'handyman':
-                $totalEarning = Booking::where('status', '!=', 'cancelled')->whereHas('handymanAdded', function ($query) use ($auth_user) {
-                    $query->where('handyman_id', $auth_user->id);
-                })->sum('total_amount');
+                $totalEarning = Booking::where('status', 'completed')
+                    ->whereHas('payment', function ($q) {
+                        $q->where('payment_status', 'paid');
+                    })
+                    ->whereHas('handymanAdded', function ($query) use ($auth_user) {
+                        $query->where('handyman_id', $auth_user->id);
+                    })->sum('total_amount');
                 break;
 
             default:
@@ -1400,7 +1412,13 @@ class BookingController extends Controller
     public function getEarningsBreakdown(Request $request)
     {
         $authRole = auth()->user()->roles->pluck('name')->first();
-        $bookings = Booking::query()->where('status', '!=', 'cancelled')->with('commissionsdata', 'payment', 'handymanAdded');
+        // Only include completed bookings with paid payment status
+        $bookings = Booking::query()
+            ->where('status', 'completed')
+            ->whereHas('payment', function ($q) {
+                $q->where('payment_status', 'paid');
+            })
+            ->with('commissionsdata', 'payment', 'handymanAdded');
 
         // Apply filters from the request
         if ($request->has('advanceFilter')) {
@@ -1483,7 +1501,7 @@ class BookingController extends Controller
             // Get the raw total amount before any adjustments
             $rawTotal = $booking->total_amount + ($booking->final_discount_amount ?? 0);
 
-            // // Calculate actual total after discount
+            // Calculate actual total after discount
             $actualTotal = $booking->total_amount;
 
             // Handle commission distribution
@@ -1505,28 +1523,39 @@ class BookingController extends Controller
                 $earnings['tax'] += $booking->final_total_tax ?? 0;
                 $earnings['discount'] += $booking->final_discount_amount ?? 0;
 
-                // Update totals - switched rawTotal and actualTotal
+                // Update totals
                 $earnings['totalAmountWithDiscount'] += $rawTotal;
                 $earnings['totalAmountWithoutDiscount'] += $actualTotal;
-                $earnings['total'] += $rawTotal - ($booking->final_discount_amount ?? 0); // Changed to rawTotal to show amount before discount
-
+                $earnings['total'] += $rawTotal - ($booking->final_discount_amount ?? 0);
             }
-            // else {
-            //     // If no handyman, provider gets the full amount after discount and tax
-            //     $earnings['provider'] += ($actualTotal - ($booking->final_total_tax ?? 0));
-            // }
-
-
         }
 
-        // Round all values to 2 decimal places for consistency
+        // Format all values for display
         foreach ($earnings as $key => $value) {
             $earnings[$key] = getPriceFormat($value);
         }
-        // dd($earnings['total']);
+
+        // For admin, calculate totalEarning matching dashboard total_revenue
+        if ($authRole === 'admin' || $authRole === 'demo_admin') {
+            $commissionEarning = CommissionEarning::whereIn('commission_status', ['paid', 'unpaid'])
+                ->whereHas('getbooking', function ($query) {
+                    $query->where('status', 'completed')
+                          ->whereHas('payment', function ($q) {
+                              $q->where('payment_status', 'paid');
+                          });
+                })
+                ->sum('commission_amount');
+            $cancellationCharge = Booking::where('status', 'cancelled')->sum('cancellation_charge_amount');
+            $subscriptionAmount = SubscriptionTransaction::where('payment_status', 'paid')->sum('amount');
+            $promotionalBannerAmount = PromotionalBanner::where('payment_status', 'paid')->sum('total_amount');
+            $totalEarningValue = $commissionEarning + $cancellationCharge + $subscriptionAmount + $promotionalBannerAmount;
+            $totalEarningFormatted = getPriceFormat($totalEarningValue);
+        } else {
+            $totalEarningFormatted = $earnings['total'];
+        }
 
         return response()->json([
-            'totalEarning' => $earnings['total'],
+            'totalEarning' => $totalEarningFormatted,
             'earnings' => $earnings,
             'userRole' => $authRole,
         ]);

@@ -203,10 +203,11 @@
                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                 <div class="progress-bar provider bg-warning" role="progressbar" style="width: 0%"
                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                <div class="progress-bar handyman bg-info" role="progressbar" style="width: 0%"
+                                {{-- Handyman and Tax progress bars hidden --}}
+                                {{-- <div class="progress-bar handyman bg-info" role="progressbar" style="width: 0%"
                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                 <div class="progress-bar tax bg-danger" role="progressbar" style="width: 0%"
-                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> --}}
                                 <div class="progress-bar discount bg-success" role="progressbar" style="width: 0%"
                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
@@ -581,17 +582,20 @@ console.log(data);
                         if (data.userRole === 'admin' || data.userRole === 'demo_admin') {
                             $('.progress-bar.admin').css('width', calculatePercent(parseFlexibleAmount(earnings.admin), totalEarning) + '%');
                             $('.progress-bar.provider').css('width', calculatePercent(parseFlexibleAmount(earnings.provider), totalEarning) + '%');
-                            $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
-                            $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
+                            // Handyman and Tax progress bars hidden
+                            // $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
+                            // $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
                             $('.progress-bar.discount').css('width', calculatePercent(parseFlexibleAmount(earnings.discount), totalEarning) + '%');
                         } else if (data.userRole === 'provider') {
                             $('.progress-bar.provider').css('width', calculatePercent(parseFlexibleAmount(earnings.provider), totalEarning) + '%');
-                            $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
-                            $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
+                            // Handyman and Tax progress bars hidden
+                            // $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
+                            // $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
                             $('.progress-bar.discount').css('width', calculatePercent(parseFlexibleAmount(earnings.discount), totalEarning) + '%');
                         } else {
-                            $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
-                            $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
+                            // Handyman and Tax progress bars hidden
+                            // $('.progress-bar.handyman').css('width', calculatePercent(parseFlexibleAmount(earnings.handyman), totalEarning) + '%');
+                            // $('.progress-bar.tax').css('width', calculatePercent(parseFlexibleAmount(earnings.tax), totalEarning) + '%');
                             $('.progress-bar.discount').css('width', calculatePercent(parseFlexibleAmount(earnings.discount), totalEarning) + '%');
                         }
 
@@ -602,11 +606,13 @@ console.log(data);
                         let earningListHtml = generateEarningsList(earnings, data.userRole);
                         $('#earningList').html(earningListHtml);
 
-                        // Update totals
-                        $('#total_without_discount').text(earnings.totalAmountWithoutDiscount);
-                        console.log(parseFlexibleAmount(earnings.discount));
-                        if (parseFlexibleAmount(earnings.discount) > 0) {
-                            $('#total_with_discount').text(earnings.totalAmountWithDiscount).show();
+                        // Update totals - use totalEarning to match booking page / dashboard
+                        $('#total_without_discount').text(data.totalEarning);
+                        let discountAmount = parseFlexibleAmount(earnings.discount);
+                        if (discountAmount > 0) {
+                            // Show pre-discount total as strikethrough
+                            let totalWithoutDiscount = parseFlexibleAmount(data.totalEarning) + discountAmount;
+                            $('#total_with_discount').text(getPriceFormat(totalWithoutDiscount)).show();
                         } else {
                             $('#total_with_discount').hide();
                         }
@@ -636,6 +642,9 @@ console.log(data);
                     return parseFloat(cleanAmount) || 0;
                 }
             }
+            function getPriceFormat(price) {
+                return '$' + parseFloat(price).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            }
             function generateEarningsList(earnings, userRole) {
                 let html = `
                     <li class="list-group-item d-flex justify-content-between py-2 px-0">
@@ -659,15 +668,18 @@ console.log(data);
                     </li>`;
                 }
 
+                // Handyman Earned and Tax Amount hidden
+                // html += `
+                //     <li class="py-2 d-flex justify-content-between">
+                //         <span>Handyman Earned:</span>
+                //         <span class="fw-bold text-info">${earnings.handyman}</span>
+                //     </li>
+                //     <li class="py-2 d-flex justify-content-between">
+                //         <span>Tax Amount:</span>
+                //         <span class="text-danger">${earnings.tax}</span>
+                //     </li>`;
+
                 html += `
-                    <li class="py-2 d-flex justify-content-between">
-                        <span>Handyman Earned:</span>
-                        <span class="fw-bold text-info">${earnings.handyman}</span>
-                    </li>
-                    <li class="py-2 d-flex justify-content-between">
-                        <span>Tax Amount:</span>
-                        <span class="text-danger">${earnings.tax}</span>
-                    </li>
                     <li class="py-2 d-flex justify-content-between">
                         <span>Discount:</span>
                         <span class="text-success">${earnings.discount}</span>
