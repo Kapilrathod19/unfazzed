@@ -137,11 +137,6 @@
                         title: "{{ __('messages.service') }}"
                     },
                     {
-                        data: 'provider_id',
-                        name: 'provider_id',
-                        title: "{{ __('messages.provider') }}"
-                    },
-                    {
                         data: 'price',
                         name: 'price',
                         title: "{{ __('messages.price') }}"
