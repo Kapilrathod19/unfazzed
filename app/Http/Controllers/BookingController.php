@@ -706,6 +706,7 @@ class BookingController extends Controller
                     'service_addon_id' => $addonModel->id,
                     'name' => $addonModel->name,
                     'price' => $addonModel->price,
+                    'status' => 1,
                 ]);
             }
         }
@@ -747,7 +748,8 @@ class BookingController extends Controller
     // -------------------------------------------
     // RECALCULATE SNAPSHOTS (Important for Admin Earnings)
     // -------------------------------------------
-    $result->final_total_service_price = $result->getServiceTotalPrice();
+    $result->load(['bookingAddonService', 'bookingServiceOption']);
+    $result->final_total_service_price = $result->getFinalServiceTotalPrice();
     $result->final_discount_amount = $result->getDiscountValue();
     $result->final_coupon_discount_amount = $result->getCouponDiscountValue();
     

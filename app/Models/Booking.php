@@ -283,6 +283,10 @@ class Booking extends Model
         }
         return $serviceTotalPrice;
     }
+    public function getFinalServiceTotalPrice(): float
+    {
+        return $this->getServiceTotalPrice() + $this->getServiceAddonValue() + $this->getServiceOptionValue();
+    }
     public function getDiscountValue(): float
     {
         $baseAmount = $this->getServiceTotalPrice() + $this->getServiceOptionValue() + $this->getServiceAddonValue();

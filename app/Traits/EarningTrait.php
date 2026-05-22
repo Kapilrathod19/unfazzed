@@ -179,11 +179,12 @@ trait EarningTrait {
         // RE-SYNC SNAPSHOTS IF MISSING (To fix old bookings or sync issues)
         // ------------------------------------------------------------------
         if ($bookingdata->final_sub_total <= 0 || $bookingdata->total_amount <= 0) {
-            $bookingdata->final_total_service_price = $bookingdata->getServiceTotalPrice();
+            $bookingdata->load(['bookingAddonService', 'bookingServiceOption']);
+            $bookingdata->final_total_service_price = $bookingdata->getFinalServiceTotalPrice();
             $bookingdata->final_discount_amount = $bookingdata->getDiscountValue();
             $bookingdata->final_coupon_discount_amount = $bookingdata->getCouponDiscountValue();
             
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue() + $bookingdata->getExtraChargeValue();
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getExtraChargeValue();
             $bookingdata->final_sub_total = $subtotal;
             
             $tax = $bookingdata->getTaxesValue();

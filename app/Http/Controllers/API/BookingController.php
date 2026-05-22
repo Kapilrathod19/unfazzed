@@ -467,6 +467,7 @@ class BookingController extends Controller
                 $get_addon->update();
             }
         }
+        $bookingdata->load(['bookingAddonService', 'bookingServiceOption']);
         if ($data['status'] === 'hold') {
             if ($bookingdata->start_at == null && $bookingdata->end_at == null) {
                 $duration_diff = isset($data['duration_diff']) ? $data['duration_diff'] : 0;
@@ -488,10 +489,10 @@ class BookingController extends Controller
                     }
                     $data['duration_diff'] = $duration_diff + $new_diff;
                     $bookingdata['duration_diff'] = $data['duration_diff'];
-                    $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
+                    $data['final_total_service_price'] = round($bookingdata->getFinalServiceTotalPrice(), $digitafter_decimal_point);
                     $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
                     $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
-                    $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue();
+                    $subtotal = $bookingdata->getSubTotalValue();
                     $data['final_sub_total'] = $subtotal;
                     $tax = round($bookingdata->getTaxesValue(), $digitafter_decimal_point);
                     $data['final_total_tax'] = $tax;
@@ -507,10 +508,10 @@ class BookingController extends Controller
 
             $data['duration_diff'] = $duration_diff + $new_diff;
             $bookingdata['duration_diff'] = $data['duration_diff'];
-            $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
+            $data['final_total_service_price'] = round($bookingdata->getFinalServiceTotalPrice(), $digitafter_decimal_point);
             $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
             $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue();
+            $subtotal = $bookingdata->getSubTotalValue();
             $data['final_sub_total'] = $subtotal;
             $tax = round($bookingdata->getTaxesValue(), $digitafter_decimal_point);
             $data['final_total_tax'] = $tax;
@@ -655,7 +656,7 @@ class BookingController extends Controller
                 ];
                 $bookingdata->bookingExtraCharge()->insert($extra_charge);
             }
-            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getServiceAddonValue() + $bookingdata->getServiceOptionValue() + $bookingdata->getExtraChargeValue();
+            $subtotal = $bookingdata->getSubTotalValue() + $bookingdata->getExtraChargeValue();
 
             // without include extrachage tax caculation
             $data['final_sub_total'] = $subtotal;
@@ -674,7 +675,7 @@ class BookingController extends Controller
         // ------------------------------------------------------------------
         // ALWAYS RECALCULATE SNAPSHOTS BEFORE SAVING (Important for Admin Earnings)
         // ------------------------------------------------------------------
-        $data['final_total_service_price'] = round($bookingdata->getServiceTotalPrice(), $digitafter_decimal_point);
+        $data['final_total_service_price'] = round($bookingdata->getFinalServiceTotalPrice(), $digitafter_decimal_point);
         $data['final_discount_amount'] = round($bookingdata->getDiscountValue(), $digitafter_decimal_point);
         $data['final_coupon_discount_amount'] = round($bookingdata->getCouponDiscountValue(), $digitafter_decimal_point);
         
