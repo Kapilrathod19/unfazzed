@@ -79,7 +79,13 @@ class ProviderPayoutController extends Controller
             return ($payout->amount != null && isset($payout->amount)) ? getPriceFormat($payout->amount) : '-';
         })
         ->editColumn('created_at', function($payout) {
-            return $payout->created_at;
+            $sitesetup = Setting::where('type','site-setup')->where('key', 'site-setup')->first();
+            $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
+            $time_zone = getTimeZone();
+            $formattedDate =  optional($datetime)->date_format && optional($datetime)->time_format && $payout->created_at
+            ? $payout->created_at->timezone($time_zone)->format(optional($datetime)->date_format . ' ' . optional($datetime)->time_format)
+            : $payout->created_at;
+            return $formattedDate;
         })
         ->addColumn('action', function($providerpayout){
             return view('providerpayout.action',compact('providerpayout'))->render();
@@ -266,7 +272,13 @@ class ProviderPayoutController extends Controller
             return ($payout->amount != null && isset($payout->amount)) ? getPriceFormat($payout->amount) : '-';
         })
         ->editColumn('created_at', function($payout) {
-            return $payout->created_at;
+            $sitesetup = Setting::where('type','site-setup')->where('key', 'site-setup')->first();
+            $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
+            $time_zone = getTimeZone();
+            $formattedDate =  optional($datetime)->date_format && optional($datetime)->time_format && $payout->created_at
+            ? $payout->created_at->timezone($time_zone)->format(optional($datetime)->date_format . ' ' . optional($datetime)->time_format)
+            : $payout->created_at;
+            return $formattedDate;
         })
         ->addIndexColumn()
         ->rawColumns(['bank_name'])
