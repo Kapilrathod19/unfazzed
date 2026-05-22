@@ -58,7 +58,7 @@ class HomeController extends Controller
             'count_total_booking'               => Booking::myBooking()->count(),
             'count_total_service'               => Service::myService()->count(),
             'count_total_provider'              => User::where('user_type', 'provider')->count(),
-            'new_customer'                      => User::myUsers('get_customer')->orderBy('id', 'DESC')->take(5)->get(),
+            'new_customer'                      => User::myUsers('get_customer')->whereHas('booking')->orderBy('id', 'DESC')->take(5)->get(),
             'new_provider'                      => User::myUsers('get_provider')->with('getServiceRating')->orderBy('id', 'DESC')->take(5)->get(),
             // 'upcomming_booking'                 => Booking::myBooking()->with('customer')->where('status', 'pending')->orderBy('id', 'DESC')->take(5)->get(),
             'upcomming_booking'                 => Booking::myBooking()->with('customer')->orderBy('id', 'DESC')->take(5)->get(),
