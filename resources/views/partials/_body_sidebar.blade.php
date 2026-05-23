@@ -1003,7 +1003,7 @@
             )
             ->link->attr(['class' => '']);
 
-        /* $menu
+         $menu
             ->add(
                 '<span>' .
                     __('messages.notification_templates') .
@@ -1022,7 +1022,7 @@
             )
             ->nickname('notification_template')
             ->data('role', ['admin', 'demo_admin'])
-            ->link->attr(['class' => '']); */
+            ->link->attr(['class' => '']); 
 
         $menu
             ->add(
