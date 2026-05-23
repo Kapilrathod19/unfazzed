@@ -54,7 +54,7 @@
     </div>
     
     <!-- Demo Login Section -->
-    <div class="" id='demo_login_section'>
+    {{-- <div class="" id='demo_login_section'>
         <div class="form-group">
             <div class="form-control d-flex align-items-center justify-content-between">
                 <label for="demo_login" class="mb-0">{{ __('messages.demo_login') }}</label>
@@ -64,7 +64,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <div class="form-group">
         <div class="form-control d-flex align-items-center justify-content-between">
@@ -77,7 +77,7 @@
     </div>
 
 
-    <div class="form-group">
+    {{--<div class="form-group">
         <div class="form-control d-flex align-items-center justify-content-between">
             <label for="blog" class="mb-0">{{ __('messages.enable_blog') }}</label>
             <div class="custom-control custom-switch custom-switch-text custom-switch-color custom-control-inline">
@@ -262,7 +262,7 @@
             <label class="custom-control-label" for="is_in_app_purchase_enable"></label>
         </div>
     </div>
-</div>
+</div>--}}
 
 <div class="form-padding-box mb-3 d-none" id="in_app_purchase_fields">
     <div class="row">
@@ -381,7 +381,7 @@
     </div>
 
     <!-- WhatsApp Notification -->
-<div class="form-group col-md-12 d-flex justify-content-between">
+{{--<div class="form-group col-md-12 d-flex justify-content-between">
     <label for="whatsapp_notification" class="mb-0">{{ __('messages.whatsapp_notificaion') }}</label>
     <div class="custom-control custom-switch custom-switch-text custom-switch-color custom-control-inline">
         <input type="checkbox" class="custom-control-input" name="whatsapp_notification" id="whatsapp_notification" {{ !empty($othersetting->whatsapp_notification) && $othersetting->whatsapp_notification == 1 ? 'checked' : '' }}>
@@ -436,11 +436,11 @@
                 {{ html()->number('twilio_phone_number_sms', $othersetting->twilio_phone_number_sms ?? '')->class('form-control')->id('twilio_phone_number_sms')->placeholder(__('messages.twilio_phone_number')) }}
             </div>
         </div>
-    </div>
+    </div>--}}
     </div>
 
 
-<div class="row">
+{{-- <div class="row">
     <div class="form-group col-md-12 d-flex justify-content-between">
         <label for="dashboard_type" class="mb-0">{{ __('messages.set_dashboard') }}</label>
     </div>
@@ -483,7 +483,7 @@
             </label>
         </div>
     </div>
-</div>
+</div> --}}
 
 
 

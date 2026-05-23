@@ -91,12 +91,12 @@
                                             </li>
 
                                             </li>
-                                            <li class="nav-item">
+                                            {{-- <li class="nav-item">
                                                 <a href="javascript:void(0)" data-href="{{ route('layout_page') }}?page=provider-banner" data-target=".paste_here" class="nav-link {{$page=='provider-banner'?'active':''}}"  data-toggle="tabajax" rel="tooltip"> {{ __('messages.provider_promotional_banner') }}</a>
                                             </li>
                                               <li class="nav-item">
                                                 <a href="javascript:void(0)" data-href="{{ route('layout_page') }}?page=seo-setting" data-target=".paste_here" class="nav-link {{$page=='seo-setting'?'active':''}}"  data-toggle="tabajax" rel="tooltip"> {{ __('messages.seo_settings') }}</a>
-                                            </li>
+                                            </li> --}}
                                             {{-- @if(!$isAdminOrProvider)
                                             <li class="nav-item">
                                                 <a href="javascript:void(0)" data-href="{{ route('layout_page') }}?page=provider-zip" data-target=".paste_here" class="nav-link {{$page=='provider-zip'?'active':''}}"  data-toggle="tabajax" rel="tooltip"> {{ __('messages.zip_code') }}</a>
