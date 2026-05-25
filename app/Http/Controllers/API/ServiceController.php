@@ -420,7 +420,14 @@ class ServiceController extends Controller
     {
         $user = auth()->user();
 
-        $favourite = UserFavouriteService::where('user_id', $user->id);
+        $favourite = UserFavouriteService::where('user_id', $user->id)->with([
+            'customer',
+            'service.translations',
+            'service.getUserFavouriteService',
+            'service.serviceRating.customer',
+            'service.category.translations',
+            'service.providers'
+        ]);
 
         $per_page = config('constant.PER_PAGE_LIMIT');
 

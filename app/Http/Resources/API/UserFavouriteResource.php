@@ -4,6 +4,7 @@ namespace App\Http\Resources\API;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Traits\TranslationTrait;
+use App\Http\Resources\API\BookingRatingResource;
 
 class UserFavouriteResource extends JsonResource
 {
@@ -34,6 +35,8 @@ class UserFavouriteResource extends JsonResource
             'service_attchments' => getAttachments(optional($this->service)->getMedia('service_attachment'),null),
             'is_favourite'  => $this->service->getUserFavouriteService->where('user_id',$user_id)->first() ? 1 : 0,
             'total_rating'  => count($this->service->serviceRating) > 0 ? (float) number_format(max($this->service->serviceRating->avg('rating'),0), 2) : 0,
+            'service_rating' => optional($this->service) ? (double) $this->service->service_rating : null,
+            'service_review' => optional($this->service) ? $this->service->service_review : null,
             'category_name' => $this->getTranslation(optional(optional($this->service)->category)->translations, $headerValue, 'name', optional(optional($this->service)->category)->description) ?? optional($this->service->category)->name,
             'category_id'   => $this->service->category_id,
             'provider_image'=> optional($this->service->providers)->login_type != null ? optional($this->service->providers)->social_image : getSingleMedia(optional($this->service->providers), 'profile_image',null),
