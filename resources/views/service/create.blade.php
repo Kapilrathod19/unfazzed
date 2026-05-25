@@ -177,6 +177,25 @@
                                 </div>
                                 <img id="service_attachment_preview"
                                     style="margin-top: 10px; max-width: 100%; display: none;" alt="Preview">
+                                @if(isset($servicedata->id) && $servicedata->id)
+                                    @php
+                                        $existingAttachments = $servicedata->getMedia('service_attachment');
+                                    @endphp
+                                    @if($existingAttachments->count() > 0)
+                                        <div class="mt-3">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach($existingAttachments as $attachment)
+                                                    <div class="position-relative border rounded p-1" style="width: 100px; height: 100px;">
+                                                        <img src="{{ $attachment->getFullUrl() }}"
+                                                            alt="Attachment"
+                                                            class="w-100 h-100"
+                                                            style="object-fit: cover; border-radius: 4px;">
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endif
                             </div>
                         </div>
 
@@ -442,8 +461,13 @@
                                                     {{ html()->text("how_it_done[{$index}][title]", $stepTitle)->placeholder(__('messages.description'))->class('form-control step-title')->required() }}
                                                 </div>
                                                 <div class="form-group col-md-4">
-                                                    {{ html()->label(__('messages.image') . ' (Optional)', "how_it_done[{$index}][image]")->class('form-control-label') }}
-                                                    <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*">
+                                                    @if (!empty($stepImage))
+                                                        {{ html()->label(__('messages.image') . ' (Optional)', "how_it_done[{$index}][image]")->class('form-control-label') }}
+                                                        <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*">
+                                                    @else
+                                                        {{ html()->label(__('messages.image') . ' <span class="text-danger">*</span>', "how_it_done[{$index}][image]")->class('form-control-label') }}
+                                                        <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*" required>
+                                                    @endif
                                                     @if (!empty($stepImage))
                                                         <div class="mt-2">
                                                             <img src="{{ asset('storage/'.$stepImage) }}"
@@ -466,8 +490,8 @@
                                                 {{ html()->text('how_it_done[0][title]', '')->placeholder(__('messages.description'))->class('form-control step-title')->required() }}
                                             </div>
                                             <div class="form-group col-md-4">
-                                                {{ html()->label(__('messages.image') . ' (Optional)', 'how_it_done[0][image]')->class('form-control-label') }}
-                                                <input type="file" name="how_it_done[0][image]" class="form-control step-image" accept="image/*">
+                                                {{ html()->label(__('messages.image') . ' <span class="text-danger">*</span>', 'how_it_done[0][image]')->class('form-control-label') }}
+                                                <input type="file" name="how_it_done[0][image]" class="form-control step-image" accept="image/*" required>
                                             </div>
                                             <div class="form-group col-md-1 d-flex align-items-end">
                                                 <button type="button" class="btn btn-sm btn-danger remove-step w-100" style="display:none;">
@@ -1307,8 +1331,8 @@
                             <input type="text" name="how_it_done[${index}][title]" class="form-control step-title" value="${titleValue}" placeholder="${stepLabelDescription}" required>
                         </div>
                         <div class="form-group col-md-4">
-                            <label class="form-control-label" for="how_it_done[${index}][image]">${stepLabelImage} (Optional)</label>
-                            <input type="file" name="how_it_done[${index}][image]" class="form-control step-image" accept="image/*">
+                            <label class="form-control-label" for="how_it_done[${index}][image]">${stepLabelImage} <span class="text-danger">*</span></label>
+                            <input type="file" name="how_it_done[${index}][image]" class="form-control step-image" accept="image/*" required>
                             ${imageUrl ? `<div class="mt-2"><img src="${imageUrl.startsWith('http') ? imageUrl : '/storage/' + imageUrl}" alt="Step Image" style="max-width: 80px; max-height: 80px;"></div>` : ''}
                         </div>
                         <div class="form-group col-md-1 d-flex align-items-end">

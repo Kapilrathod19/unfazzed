@@ -901,6 +901,12 @@ class ServiceController extends Controller
                 $howItDone->title = $stepData['title'];
 
                 $imageFile = data_get($stepFiles, $index . '.image');
+
+                // Image is required for new steps that don't have an existing image
+                if (!$imageFile && (!$howItDone->exists || empty($howItDone->image))) {
+                    continue; // Skip saving this step if no image provided for new entry
+                }
+
                 if ($imageFile) {
                     if ($howItDone->image && Storage::disk('public')->exists($howItDone->image)) {
                         Storage::disk('public')->delete($howItDone->image);
