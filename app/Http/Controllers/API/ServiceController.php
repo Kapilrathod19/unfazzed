@@ -393,7 +393,10 @@ class ServiceController extends Controller
     {
         $user_favourite = $request->all();
 
-        $result = UserFavouriteService::updateOrCreate(['id' => $request->id], $user_favourite);
+        $result = UserFavouriteService::updateOrCreate(
+            ['user_id' => $request->user_id, 'service_id' => $request->service_id],
+            $user_favourite
+        );
 
         $message = __('messages.update_form', ['form' => __('messages.wishlist')]);
         if ($result->wasRecentlyCreated) {
@@ -406,7 +409,7 @@ class ServiceController extends Controller
     public function deleteFavouriteService(Request $request)
     {
 
-        $service_rating = UserFavouriteService::where('user_id', $request->user_id)->where('service_id', $request->service_id)->delete();
+        $service_rating = UserFavouriteService::where('user_id', $request->user_id)->where('service_id', $request->service_id)->forceDelete();
 
         $message = __('messages.delete_form', ['form' => __('messages.wishlist')]);
 
