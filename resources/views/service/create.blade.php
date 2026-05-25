@@ -164,6 +164,11 @@
                             </div>
 
                             <div class="form-group col-md-4">
+                                {{ html()->label('Service Review', 'service_review')->class('form-control-label') }}
+                                {{ html()->text('service_review', $servicedata->service_review ?? '')->placeholder('e.g. 2.4K')->class('form-control') }}
+                            </div>
+
+                            <div class="form-group col-md-4">
                                 <label class="form-control-label" for="service_attachment">{{ __('messages.image') }}
                                     <span class="text-danger">*</span>
                                 </label>

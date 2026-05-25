@@ -18,7 +18,7 @@ class Service extends Model implements  HasMedia
         'name', 'category_id', 'provider_id' , 'type' , 'is_slot','discount' , 'duration' ,'description',
         'is_featured', 'status' , 'price' , 'added_by','service_request_status','is_service_request','subcategory_id','service_type','visit_type',
         'is_enable_advance_payment','advance_payment_amount',
-        'meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'slug', 'seo_enabled', 'service_rating'
+        'meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'slug', 'seo_enabled', 'service_rating', 'service_review'
     ];
 
     protected $casts = [
@@ -36,6 +36,7 @@ class Service extends Model implements  HasMedia
         'meta_keywords'             => 'array',
         'seo_enabled'               => 'boolean',
         'service_rating'            => 'double',
+        'service_review'            => 'string',
     ];
 
     public function translations()

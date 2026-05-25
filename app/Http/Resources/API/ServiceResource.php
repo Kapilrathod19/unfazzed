@@ -86,6 +86,7 @@ class ServiceResource extends JsonResource
             'reject_reason'        => $this->reject_reason,
             'service_request_status'        => $this->service_request_status,
             'service_rating'                => (double) $this->service_rating,
+            'service_review'                => $this->service_review,
         ];
     }
 }
