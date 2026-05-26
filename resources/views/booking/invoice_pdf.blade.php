@@ -135,7 +135,7 @@
                     </div>
                 </div>
                 @endif
-                @if ($bookingdata->provider)
+                {{-- @if ($bookingdata->provider)
                 <div class="column">
                     <h5 style="margin: 8px 0;">{{__('messages.provider')}}:</h5>
                     <div class="card">
@@ -157,8 +157,8 @@
                         </table>
                     </div>
                 </div>
-                @endif
-                @if(count($bookingdata->handymanAdded) > 0)
+                @endif --}}
+                {{-- @if(count($bookingdata->handymanAdded) > 0)
                 @foreach($bookingdata->handymanAdded as $booking)
                 <div class="column">
                     <h5 style="margin: 8px 0;">{{__('messages.handyman')}}:</h5>
@@ -182,7 +182,7 @@
                     </div>
                 </div>
                 @endforeach
-                @endif
+                @endif --}}
             </div>
         </div>
 
@@ -413,7 +413,7 @@
             <div style="display: inline; vertical-align: middle; margin-right: 10px;">
                 <h5 style="display: inline;">For more information, visit our website:</h5>
                 <a href="{{$generaldata->website}}" style="color: #5F60B9;">{{ $generaldata->website}}</a>
-                <h5 style="display: block; margin: 8px 0 0;">© 2024 All Rights Reserved by IQONIC Design</h5>
+                <h5 style="display: block; margin: 8px 0 0;">{{ $app->site_copyright ?? ''}}</h5>
             </div>
         </footer>
     </div>
