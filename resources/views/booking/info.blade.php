@@ -316,6 +316,19 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                                 @endif
                                                 <!-- <td class="text-end">{{ getPriceFormat($bookingdata->amount) }} × {{ $bookingdata->quantity }} = {{ getPriceFormat($bookingdata->amount * $bookingdata->quantity) }}</td> -->
                                             </tr>
+                                            
+                                            @php
+                                            // Calculate extra charges and add-ons
+                                            $extraCharges = $bookingdata->bookingExtraCharge->count() > 0 ? $bookingdata->getExtraChargeValue() : 0;
+                                            $addonTotalPrice = $bookingdata->bookingAddonService->count() > 0 ? $bookingdata->bookingAddonService->sum('price') : 0;
+                                            @endphp
+
+                                            @if($addonTotalPrice > 0)
+                                            <tr class="border-bottom">
+                                                <td colspan="3">{{ __('messages.add_ons') }}</td>
+                                                <td class="text-end text-success">+{{ getPriceFormat($addonTotalPrice) }}</td>
+                                            </tr>
+                                            @endif
 
                                             <!-- discount -->
                                             @if($bookingdata->bookingPackage == null && $bookingdata->discount > 0)
@@ -334,26 +347,13 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                             </tr>
                                             @endif
                                             <!-- Extra Charges -->
-
-                                            @php
-                                            // Calculate extra charges and add-ons
-                                            $extraCharges = $bookingdata->bookingExtraCharge->count() > 0 ? $bookingdata->getExtraChargeValue() : 0;
-                                            $addonTotalPrice = $bookingdata->bookingAddonService->count() > 0 ? $bookingdata->bookingAddonService->sum('price') : 0;
-                                            @endphp
+                                           
                                             @if($extraCharges > 0)
                                             <tr class="border-bottom">
                                                 <td colspan="3">{{ __('messages.extra_charge') }}</td>
                                                 <td class="text-end text-success">+{{ getPriceFormat($extraCharges) }}</td>
                                             </tr>
-                                            @endif
-                                           
-                                            @if($addonTotalPrice > 0)
-                                            <tr class="border-bottom">
-                                                <td colspan="3">{{ __('messages.add_ons') }}</td>
-                                                <td class="text-end text-success">+{{ getPriceFormat($addonTotalPrice) }}</td>
-                                            </tr>
-                                            @endif
-                                           
+                                            @endif                                           
 
                                             @if($bookingdata->post_request_id == null)
                                             <!-- Subtotal -->
