@@ -281,7 +281,7 @@ class UserController extends Controller
             if ($user->status == 0) {
                 Auth::logout();
                 if (in_array($user->user_type, ['provider', 'handyman'])) {
-                    return comman_message_response(__('messages.pending_approval', [], 'en', 'Your account is pending for admin approval.'), 401);
+                    return comman_message_response('Your account is pending for admin approval. Please wait until the admin approves your account.', 401);
                 }
                 return comman_message_response(__('messages.deactivate'), 401);
             }
