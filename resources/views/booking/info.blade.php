@@ -16,24 +16,25 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                             </div>
                             <div class="d-flex flex-wrap flex-xxl-nowrap gap-3">
                                 <div class="w3-third">
-                                    @if($bookingdata->handymanAdded->count() == 0 && $bookingdata->status !== "cancelled")
-                                        @hasanyrole('admin|demo_admin|provider')
-                                        <button class="float-end btn btn-primary" id="assign-provider" data-id="{{ $bookingdata->id }}" data-handyman-id="{{ $bookingdata->provider_id }}">
+                                    @if($bookingdata->provider_id === null && $bookingdata->handymanAdded->count() == 0 && $bookingdata->status !== "cancelled")
+                                        @hasanyrole('admin|demo_admin')
+                                        <a href="{{ route('booking.assign_provider_form', ['id' => $bookingdata->id]) }}"
+                                           class="float-end btn btn-primary loadRemoteModel">
                                             <i class="lab la-telegram-plane"></i>
                                             {{ __('messages.assign_provider') }}
-                                        </button>
+                                        </a>
                                         @endhasanyrole
                                     @endif
                                 </div>
-                                    <div class="w3-third">
-                                        @if($bookingdata->handymanAdded->count() == 0 && $bookingdata->status !== "cancelled")
-                                            @hasanyrole('admin|demo_admin|provider')
-                                            <a href="{{ route('booking.assign_form',['id'=> $bookingdata->id ]) }}"
-                                            class=" float-end btn btn-primary loadRemoteModel"><i class="lab la-telegram-plane"></i>
-                                            {{ __('messages.assign_handyman') }}</a>
-                                            @endhasanyrole
-                                        @endif
-                                    </div>
+                                <div class="w3-third">
+                                    @if($bookingdata->handymanAdded->count() == 0 && $bookingdata->status !== "cancelled")
+                                        @role('provider')
+                                        <a href="{{ route('booking.assign_form',['id'=> $bookingdata->id ]) }}"
+                                           class="float-end btn btn-primary loadRemoteModel"><i class="lab la-telegram-plane"></i>
+                                           {{ __('messages.assign_handyman') }}</a>
+                                        @endrole
+                                    @endif
+                                </div>
 
                                 @if($bookingdata->payment_id !== null)
                                     <a href="{{route('invoice_pdf',$bookingdata->id)}}" class="btn btn-primary" target="_blank">
@@ -547,44 +548,5 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
             });
         });
 
-        $(document).ready(function() {
-            $('#assign-provider').on('click', function() {
-                var bookingId = $(this).data('id');
-                var handymanIds = [];
-                handymanIds.push($(this).data('handyman-id'));
 
-                // SweetAlert confirmation
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "Do you want to assign this provider?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, assign it!',
-                    cancelButtonText: 'No, cancel'
-                }).then((willAssign) => {
-                    if (willAssign.isConfirmed) {
-                        $.ajax({
-                            url: '{{ route('booking.assigned') }}',
-                            type: 'POST',
-                            data: {
-                                id: bookingId,
-                                'handyman_id[]': handymanIds,
-                                _token: '{{ csrf_token() }}'
-                            },
-                            success: function(response) {
-                                Swal.fire("Success!", response.message, "success");
-                                window.location.reload();
-                            },
-                            error: function(xhr) {
-                                Swal.fire("Error!", xhr.responseText, "error");
-                            }
-                        });
-                    } else {
-                        Swal.fire("Assignment canceled!", "The provider was not assigned.", "info");
-                    }
-                });
-            });
-        });
     </script>

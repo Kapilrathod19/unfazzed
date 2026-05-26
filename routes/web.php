@@ -265,6 +265,8 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('booking-assign-form/{id}', [BookingController::class, 'bookingAssignForm'])->name('booking.assign_form');
     Route::get('booking/details/{id}', [BookingController::class, 'bookingDetails'])->name('booking.details');
     Route::post('booking-assigned', [BookingController::class, 'bookingAssigned'])->name('booking.assigned');
+    Route::get('booking-assign-provider-form/{id}', [BookingController::class, 'bookingAssignProviderForm'])->name('booking.assign_provider_form');
+    Route::post('booking-provider-assigned', [BookingController::class, 'bookingProviderAssigned'])->name('booking.provider_assigned');
     Route::get('comission/{id}', [SettingController::class, 'comission'])->name('setting.comission');
     Route::get('details/{id}', [BookingController::class, 'bookingDetailsData'])->name('booking.detailsdata');
 

@@ -1006,6 +1006,72 @@ class BookingController extends Controller
         return view('booking.assigned_form', compact('bookingdata', 'pageTitle'));
     }
 
+    public function bookingAssignProviderForm(Request $request)
+    {
+        $id = $request->id;
+        $bookingdata = Booking::with('service')->find($id);
+
+        if (empty($bookingdata)) {
+            $msg = __('messages.not_found_entry', ['name' => __('messages.booking')]);
+            return response()->json(['status' => false, 'message' => $msg]);
+        }
+
+        $category_id = optional($bookingdata->service)->category_id;
+        $zone_id = $bookingdata->zone_id;
+
+        $providers = User::where('user_type', 'provider')
+            ->where('status', 1);
+
+        if ($zone_id) {
+            $providers->whereHas('providerZones', function ($q) use ($zone_id) {
+                $q->where('service_zones.id', $zone_id);
+            });
+        }
+
+        if ($category_id) {
+            $providers->whereHas('categories', function ($q) use ($category_id) {
+                $q->where('categories.id', $category_id);
+            });
+        }
+
+        $providers = $providers->pluck('display_name', 'id');
+
+        $pageTitle = __('messages.assign_provider');
+        return view('booking.assign_provider_form', compact('bookingdata', 'providers', 'pageTitle'));
+    }
+
+    public function bookingProviderAssigned(Request $request)
+    {
+        $bookingdata = Booking::with('payment', 'handymanAdded')->find($request->id);
+
+        if (empty($bookingdata)) {
+            return response()->json(['status' => false, 'message' => __('messages.not_found_entry', ['name' => __('messages.booking')])]);
+        }
+
+        if ($request->provider_id != null) {
+            if ($bookingdata->provider_id != $request->provider_id) {
+                $bookingdata->handymanAdded()->delete();
+            }
+            $bookingdata->provider_id = $request->provider_id;
+            
+            if ($bookingdata->status == 'pending') {
+                $bookingdata->status = 'accept';
+            }
+            $bookingdata->save();
+
+            // Send notification to the provider
+            $activity_data = [
+                'activity_type' => 'add_booking',
+                'booking_id' => $bookingdata->id,
+                'booking' => $bookingdata,
+            ];
+            $this->sendNotification($activity_data);
+        }
+
+        $message = __('messages.save_form', ['form' => __('messages.booking')]);
+        return response()->json(['status' => true, 'event' => 'callback', 'message' => $message]);
+    }
+
     public function bookingAssigned(Request $request)
     {
         $activity_type = '';
