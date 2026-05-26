@@ -252,14 +252,15 @@ class User extends Authenticatable implements HasMedia
     }
     public function getServiceRating()
     {
-        return $this->hasManyThrough(
-            BookingRating::class,
-            Service::class,
-            'provider_id', // services
-            'service_id', // booking rating
-            'id', // users
-            'id' // services
-        );
+        // return $this->hasManyThrough(
+        //     BookingRating::class,
+        //     Service::class,
+        //     'provider_id', // services
+        //     'service_id', // booking rating
+        //     'id', // users
+        //     'id' // services
+        // );
+        return $this->hasMany(HandymanRating::class, 'handyman_id', 'id');
     }
 
     public function providerBooking()
