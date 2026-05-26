@@ -26,11 +26,10 @@
                             </div>
                     
                             <div class="form-group col-md-4">
-                                {{ html()->label(__('messages.select_name', ['select' => __('messages.service')]) . ' <span class="text-danger">*</span>', 'type_id')->class('form-control-label') }}
+                                {{ html()->label(__('messages.select_name', ['select' => __('messages.service')]), 'type_id')->class('form-control-label') }}
                                 <br />
                                 {{ html()->select('type_id', [optional($sliderdata->service)->id => optional($sliderdata->service)->name], optional($sliderdata->service)->id)
                                     ->class('select2js form-group service')
-                                    ->required()
                                     ->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.service')]))
                                     ->attribute('data-ajax--url', route('ajax-list', ['type' => 'service-list']))}}
                             </div>
@@ -43,7 +42,7 @@
                             <div class="form-group col-md-4">
                                 <label class="form-control-label" for="slider_image">{{ __('messages.image') }} <span class="text-danger">*</span></label>
                                 <div class="custom-file">
-                                    <input type="file" name="slider_image" class="custom-file-input" onchange="previewImage(event)" accept="image/*" required>
+                                    <input type="file" name="slider_image" class="custom-file-input" onchange="previewImage(event)" accept="image/*" {{ ($sliderdata && getMediaFileExit($sliderdata, 'slider_image')) ? '' : 'required' }}>
                                     @if($sliderdata && getMediaFileExit($sliderdata, 'slider_image'))
                                         <label class="custom-file-label upload-label">{{ $sliderdata->getFirstMedia('slider_image')->file_name }}</label>
                                     @else
@@ -148,6 +147,20 @@
 
         function checkImage() {
             var id = @json($sliderdata->id);
+            var hasImage = @json($sliderdata && getMediaFileExit($sliderdata, 'slider_image') ? true : false);
+
+            if (hasImage) {
+                $('input[name="slider_image"]').removeAttr('required');
+                document.getElementById('saveButton').disabled = false;
+                return;
+            }
+
+            if (!id) {
+                $('input[name="slider_image"]').attr('required', 'required');
+                document.getElementById('saveButton').disabled = true; // Disable button initially
+                return;
+            }
+
             var route = "{{ route('check-image', ':id') }}";
             route = route.replace(':id', id);
             var type = 'slider';
@@ -160,7 +173,7 @@
                 },
                 success: function(result) {
                     var attachments = result.results;
-                    var attachmentsCount = Object.keys(attachments).length;
+                    var attachmentsCount = attachments ? Object.keys(attachments).length : 0;
                     if (attachmentsCount == 0) {
                         $('input[name="slider_image"]').attr('required', 'required');
                         document.getElementById('saveButton').disabled = true; // Disable button initially
