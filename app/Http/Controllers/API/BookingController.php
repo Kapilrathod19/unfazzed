@@ -77,8 +77,16 @@ class BookingController extends Controller
 
         if ($request->has('payment_status') && isset($request->payment_status)) {
             $payment_status = explode(',', $request->payment_status);
-            $booking->whereHas('payment', function ($query) use ($payment_status) {
-                $query->whereIn('payment_status', $payment_status);
+            $booking->where(function ($query) use ($payment_status) {
+                $query->whereHas('payment', function ($q) use ($payment_status) {
+                    $q->whereIn('payment_status', $payment_status);
+                    if (in_array('pending', $payment_status)) {
+                        $q->orWhereNull('payment_status');
+                    }
+                });
+                if (in_array('pending', $payment_status)) {
+                    $query->orWhereDoesntHave('payment');
+                }
             });
         }
 
