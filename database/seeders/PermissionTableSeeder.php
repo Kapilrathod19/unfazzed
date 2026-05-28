@@ -1423,6 +1423,51 @@ class PermissionTableSeeder extends Seeder
                 'created_at' => '2021-09-28 06:39:37',
                 'updated_at' => '2021-09-28 06:39:37',
             ),
+            153 =>
+            array(
+                'id' => 154,
+                'name' => 'faq',
+                'guard_name' => 'web',
+                'parent_id' => NULL,
+                'created_at' => '2026-05-28 10:10:00',
+                'updated_at' => '2026-05-28 10:10:00',
+            ),
+            154 =>
+            array(
+                'id' => 155,
+                'name' => 'faq list',
+                'guard_name' => 'web',
+                'parent_id' => 154,
+                'created_at' => '2026-05-28 10:10:00',
+                'updated_at' => '2026-05-28 10:10:00',
+            ),
+            155 =>
+            array(
+                'id' => 156,
+                'name' => 'faq add',
+                'guard_name' => 'web',
+                'parent_id' => 154,
+                'created_at' => '2026-05-28 10:10:00',
+                'updated_at' => '2026-05-28 10:10:00',
+            ),
+            156 =>
+            array(
+                'id' => 157,
+                'name' => 'faq edit',
+                'guard_name' => 'web',
+                'parent_id' => 154,
+                'created_at' => '2026-05-28 10:10:00',
+                'updated_at' => '2026-05-28 10:10:00',
+            ),
+            157 =>
+            array(
+                'id' => 158,
+                'name' => 'faq delete',
+                'guard_name' => 'web',
+                'parent_id' => 154,
+                'created_at' => '2026-05-28 10:10:00',
+                'updated_at' => '2026-05-28 10:10:00',
+            ),
         ));
     }
 }

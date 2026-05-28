@@ -390,6 +390,8 @@
   'service_status' => 'Service Status',
   'done' => 'Done',
   'servicefaq' => 'Service Faq',
+  'faq' => 'FAQ',
+  'faqs' => 'FAQs',
   'reject_booking' => 'Booking has been rejected.',
   'payout_paid' => ':type paid :amount to you.',
   'provider_payout_paid_handyman' => 'You paid :amount to :user.',

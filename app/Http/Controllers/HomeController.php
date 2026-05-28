@@ -302,6 +302,11 @@ class HomeController extends Controller
                 $servicefaq->status = $request->status;
                 $servicefaq->save();
                 break;
+            case 'faq_status':
+                $faq = \App\Models\Faq::find($request->id);
+                $faq->status = $request->status;
+                $faq->save();
+                break;
             case 'wallet_status':
                 $wallet = \App\Models\Wallet::find($request->id);
                 $wallet->status = $request->status;

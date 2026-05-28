@@ -1027,6 +1027,26 @@
         $menu
             ->add(
                 '<span>' .
+                    __('messages.faq') .
+                    '</span><span class="custom-tooltip"><span class="tooltip-text">' .
+                    __('messages.faq') .
+                    '</span></span>',
+                ['route' => 'faq.index'],
+            )
+            ->prepend(
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.09 9C9.3251 8.28019 9.94829 7.74797 10.7067 7.59253C11.4651 7.43709 12.247 7.68307 12.7849 8.22097C13.3228 8.75887 13.5688 9.54082 13.4134 10.2992C13.2579 11.0576 12.7257 11.6808 12 11.916C11.5 12.086 11.5 12.5 11.5 12.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M11.5 16H11.51" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>'
+            )
+            ->nickname('faq')
+            ->data('role', ['admin', 'demo_admin'])
+            ->link->attr(['class' => '']);
+
+        $menu
+            ->add(
+                '<span>' .
                     __('messages.pages') .
                     '</span><span class="custom-tooltip"><span class="tooltip-text">' .
                     __('messages.pages') .

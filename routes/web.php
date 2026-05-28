@@ -29,6 +29,7 @@ use App\Http\Controllers\ProviderPayoutController;
 use App\Http\Controllers\HandymanPayoutController;
 use App\Http\Controllers\HandymanTypeController;
 use App\Http\Controllers\ServiceFaqController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\PlanController;
@@ -426,6 +427,11 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::resource('servicefaq', ServiceFaqController::class);
         Route::get('servicefaq-index-data', [ServiceFaqController::class, 'index_data'])->name('servicefaq.index_data');
     });
+
+    Route::resource('faq', FaqController::class);
+    Route::get('faq-index-data', [FaqController::class, 'index_data'])->name('faq.index_data');
+    Route::post('faq-bulk-action', [FaqController::class, 'bulk_action'])->name('faq.bulk-action');
+    Route::post('faq-action', [FaqController::class, 'action'])->name('faq.action');
     Route::match(['get', 'post'], '/push-notification', [SettingController::class, 'PushNotification'])->name('pushNotification.index');
     Route::post('send-push-notification', [SettingController::class, 'sendPushNotification'])->name('sendPushNotification');
     Route::get('login-image', [App\Http\Controllers\LoginImageController::class, 'index'])->name('login_image.index');
