@@ -426,6 +426,8 @@ class BookingController extends Controller
             case 'delete':
                 $bookings = Booking::whereIn('id', $ids)->get();
                 foreach ($bookings as $booking) {
+                    $booking->status = 'cancelled';
+                    $booking->save();
                     $booking->delete();
                 }
 
@@ -992,6 +994,8 @@ class BookingController extends Controller
 
         if ($booking != '') {
             Notification::whereJsonContains('data->id', $booking->id)->delete();
+            $booking->status = 'cancelled';
+            $booking->save();
             $booking->delete();
             $msg = __('messages.msg_deleted', ['name' => __('messages.booking')]);
         }
