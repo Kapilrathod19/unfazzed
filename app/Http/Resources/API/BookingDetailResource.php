@@ -69,7 +69,7 @@ class BookingDetailResource extends JsonResource
             'total_review'       => $this->bookingRating->count('id'),
             'total_rating'       => count($this->bookingRating) > 0 ? (float) number_format(max($this->bookingRating->avg('rating'),0), 2) : 0,
             'date'               => $this->date,
-            'booking_date'       => date("$datetime->date_format $datetime->time_format", strtotime($this->date)),
+            'booking_date'       => date("$datetime->date_format $datetime->time_format", strtotime($this->created_at)),
             'start_at'           => $this->start_at,
             'end_at'             => $this->end_at,
             'duration_diff'      => $this->duration_diff,

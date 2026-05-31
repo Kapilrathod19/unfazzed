@@ -31,7 +31,7 @@ class BookingExport implements FromQuery, WithHeadings, WithMapping
         $columnMap = [
             'colID' => fn() => $booking->id,
             'colPatientName' => fn() => optional($booking->service)->name ?? '-',
-            'colStartDateTime' => fn() => $booking->date ? Carbon::parse($booking->date)->format('Y-m-d H:i:s') : '-',
+            'colStartDateTime' => fn() => $booking->created_at ? Carbon::parse($booking->created_at)->format('Y-m-d H:i:s') : '-',
             'colServices' => fn() => optional($booking->customer)->display_name . ' (' . optional($booking->customer)->email . ')',
             'colPrice' => fn() => optional($booking->provider)->display_name . ' (' . optional($booking->provider)->email . ')',
             'colStatus' => fn() => strip_tags(bookingstatus(BookingStatus::bookingStatus($booking->status))),

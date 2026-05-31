@@ -156,11 +156,11 @@ class BookingController extends Controller
                 if (count($dates) === 2) {
                     $startDate = date('Y-m-d', strtotime($dates[0]));
                     $endDate = date('Y-m-d', strtotime($dates[1]));
-                    $query->whereDate('date', '>=', $startDate)
-                        ->whereDate('date', '<=', $endDate);
+                    $query->whereDate('created_at', '>=', $startDate)
+                        ->whereDate('created_at', '<=', $endDate);
                 } elseif (count($dates) === 1) {
                     $date = date('Y-m-d', strtotime($dates[0]));
-                    $query->whereDate('date', $date);
+                    $query->whereDate('created_at', $date);
                 }
             }
 
@@ -257,8 +257,8 @@ class BookingController extends Controller
                 $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
 
                 $date = optional($datetime)->date_format && optional($datetime)->time_format
-                    ? date(optional($datetime)->date_format, strtotime($query->date)) . '  ' . date(optional($datetime)->time_format, strtotime($query->date))
-                    : $query->date;
+                    ? date(optional($datetime)->date_format, strtotime($query->created_at)) . '  ' . date(optional($datetime)->time_format, strtotime($query->created_at))
+                    : $query->created_at;
 
                 return $date;
             })
@@ -380,10 +380,10 @@ class BookingController extends Controller
             if (!empty($advanceFilter['date_range'])) {
                 $dates = explode(' to ', $advanceFilter['date_range']);
                 if (count($dates) === 2) {
-                    $query->whereDate('date', '>=', $dates[0])
-                        ->whereDate('date', '<=', $dates[1]);
+                    $query->whereDate('created_at', '>=', $dates[0])
+                        ->whereDate('created_at', '<=', $dates[1]);
                 } elseif (count($dates) === 1) {
-                    $query->whereDate('date', $dates[0]);
+                    $query->whereDate('created_at', $dates[0]);
                 }
             }
         }
@@ -514,9 +514,16 @@ class BookingController extends Controller
         $time = date('H:i:s', strtotime($data['booking_slot']));
         $data['date'] = $date . ' ' . $time;
     } else {
-        $data['date'] = isset($request->date)
-            ? date('Y-m-d H:i:s', strtotime($request->date))
-            : date('Y-m-d H:i:s');
+        if (isset($request->date)) {
+            $parsed_time = date('H:i:s', strtotime($request->date));
+            if ($parsed_time === '00:00:00') {
+                $data['date'] = date('Y-m-d', strtotime($request->date)) . ' ' . date('H:i:s');
+            } else {
+                $data['date'] = date('Y-m-d H:i:s', strtotime($request->date));
+            }
+        } else {
+            $data['date'] = date('Y-m-d H:i:s');
+        }
     }
 
     $service_data = Service::find($data['service_id']);
@@ -855,11 +862,22 @@ class BookingController extends Controller
         if (demoUserPermission()) {
             return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
         }
+        $sitesetup = Setting::where('type', 'site-setup')->where('key', 'site-setup')->first();
+        $admin = json_decode($sitesetup->value);
+        date_default_timezone_set($admin->time_zone ?? 'UTC');
+
         $data = $request->all();
 
-
-
-        $data['date'] = isset($request->date) ? date('Y-m-d H:i:s', strtotime($request->date)) : date('Y-m-d H:i:s');
+        if (isset($request->date)) {
+            $parsed_time = date('H:i:s', strtotime($request->date));
+            if ($parsed_time === '00:00:00') {
+                $data['date'] = date('Y-m-d', strtotime($request->date)) . ' ' . date('H:i:s');
+            } else {
+                $data['date'] = date('Y-m-d H:i:s', strtotime($request->date));
+            }
+        } else {
+            $data['date'] = date('Y-m-d H:i:s');
+        }
         $data['start_at'] = isset($request->start_at) ? date('Y-m-d H:i:s', strtotime($request->start_at)) : null;
         $data['end_at'] = isset($request->end_at) ? date('Y-m-d H:i:s', strtotime($request->end_at)) : null;
 

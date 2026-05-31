@@ -35,7 +35,7 @@ class BookingResource extends JsonResource
             'service_id'            => $this->service_id,
             'provider_id'           => $this->provider_id,
             'date'                  => $this->date,
-            'booking_date'          => date("$datetime->date_format $datetime->time_format", strtotime($this->date)),
+            'booking_date'          => date("$datetime->date_format $datetime->time_format", strtotime($this->created_at)),
             'price'                 => optional($this->service)->price,
             'type'                  => optional($this->service)->type,
             'discount'              => optional($this->service)->discount,
