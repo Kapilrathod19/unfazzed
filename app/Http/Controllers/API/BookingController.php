@@ -78,14 +78,30 @@ class BookingController extends Controller
         if ($request->has('payment_status') && isset($request->payment_status)) {
             $payment_status = explode(',', $request->payment_status);
             $booking->where(function ($query) use ($payment_status) {
-                $query->whereHas('payment', function ($q) use ($payment_status) {
-                    $q->whereIn('payment_status', $payment_status);
-                    if (in_array('pending', $payment_status)) {
-                        $q->orWhereNull('payment_status');
-                    }
+                $other_payment_statuses = array_filter($payment_status, function ($status) {
+                    return $status !== 'pending';
                 });
+
+                if (!empty($other_payment_statuses)) {
+                    $query->whereHas('payment', function ($q) use ($other_payment_statuses) {
+                        $q->whereIn('payment_status', $other_payment_statuses);
+                    });
+                }
+
                 if (in_array('pending', $payment_status)) {
-                    $query->orWhereDoesntHave('payment');
+                    $pending_query = function ($query) {
+                        $query->where(function ($q) {
+                            $q->whereHas('payment', function ($payment_q) {
+                                $payment_q->whereIn('payment_status', ['pending'])->orWhereNull('payment_status');
+                            })->orWhereDoesntHave('payment');
+                        })->where('status', 'completed');
+                    };
+
+                    if (!empty($other_payment_statuses)) {
+                        $query->orWhere($pending_query);
+                    } else {
+                        $query->where($pending_query);
+                    }
                 }
             });
         }
