@@ -72,10 +72,10 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                     {{ isset($payment) && $payment->payment_status == 'paid' ? 'Paid' : 'Pending'}}
                 </span>
             </div>
-            <div class="d-flex justify-content-between flex-wrap gap-2">
+            {{-- <div class="d-flex justify-content-between flex-wrap gap-2">
                 <h5>{{__('messages.booking_date')}} :</h5>
                 <span id="service_schedule__span">{{ date("$datetime->date_format $datetime->time_format", strtotime($bookingdata->date)) ?? '-'}}</span>
-            </div>
+            </div> --}}
         </div>
     </div>
     <div class="py-3 d-flex gap-3 flex-wrap customer-info-detail mb-2">

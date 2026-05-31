@@ -54,14 +54,14 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            {{-- <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-body">
                                         <p class="opacity-75 fz-12">{{__('messages.booking_date')}}</p>
                                         <p class="mb-0" id="service_schedule__span">{{ date("$datetime->date_format $datetime->time_format", strtotime($bookingdata->date)) ?? '-'}}</p>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-body">
