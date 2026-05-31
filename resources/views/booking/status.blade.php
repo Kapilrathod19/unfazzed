@@ -2,7 +2,167 @@
 $extraValue = 0;
 $sitesetup = App\Models\Setting::where('type','site-setup')->where('key', 'site-setup')->first();
 $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
-$timezone = getTimeZone();
+$timezone = $datetime->time_zone ?? getTimeZone();
+
+// Build activity map
+$activityStatusTimes = [];
+$assignedTime = null;
+
+// Initialize pending time with booking created_at
+$activityStatusTimes['pending'] = $bookingdata->created_at;
+
+if ($bookingdata->bookingActivity) {
+    foreach ($bookingdata->bookingActivity as $activity) {
+        $actData = json_decode($activity->activity_data, true);
+        
+        // Check for update_booking_status
+        if ($actData && isset($actData['status'])) {
+            $activityStatusTimes[$actData['status']] = $activity->datetime;
+        }
+        
+        $type = $activity->activity_type;
+        if (strtolower($type) == 'add booking' || $type == __('messages.add_booking')) {
+            $activityStatusTimes['pending'] = $activity->datetime;
+        }
+        
+        if (str_contains(strtolower($type), 'assigned') || str_contains(strtolower($type), 'transfer') || (is_array($actData) && isset($actData['handyman_id']))) {
+            $assignedTime = $activity->datetime;
+        }
+    }
+}
+
+// Enforce order / hierarchy weights of standard sequence
+$statusWeights = [
+    'pending' => 1,
+    'accept' => 2,
+    'assigned' => 3,
+    'on_going' => 4,
+    'arrived' => 5,
+    'in_progress' => 6,
+    'hold' => 7,
+    'pending_approval' => 8,
+    'completed' => 9,
+];
+
+// Determine the current effective status
+$currentStatus = $bookingdata->status;
+$effectiveStatus = $currentStatus;
+
+// If handyman is assigned, we insert "assigned" as a state
+$hasHandyman = $bookingdata->handymanAdded->count() > 0;
+if ($currentStatus == 'accept' && $hasHandyman) {
+    $effectiveStatus = 'assigned';
+}
+
+$currentWeight = $statusWeights[$effectiveStatus] ?? 1;
+$isTerminal = in_array($currentStatus, ['cancelled', 'rejected', 'failed']);
+
+// Define the steps we want to show
+$steps = [
+    [
+        'status' => 'pending',
+        'label' => __('messages.new_booking') ?? 'New Booking',
+        'description' => 'New Booking Added by ' . (optional($bookingdata->customer)->display_name ?? 'Customer'),
+        'color' => '#dc3545', // Red
+    ],
+    [
+        'status' => 'accept',
+        'label' => __('messages.accept_booking') ?? 'Accept Booking',
+        'description' => 'Booking Accepted by ' . (optional($bookingdata->provider)->display_name ?? 'Provider'),
+        'color' => '#ffc107', // Yellow
+    ]
+];
+
+// Show "Assigned" step if handyman is assigned, or if we have an assigned activity, or if the current status weight is past accept
+if ($hasHandyman || $assignedTime !== null || ($currentWeight >= 3 && isset($statusWeights[$effectiveStatus]))) {
+    $handymanNames = [];
+    foreach ($bookingdata->handymanAdded as $h) {
+        $handymanNames[] = optional($h->handyman)->display_name;
+    }
+    $handymanNameStr = !empty($handymanNames) ? implode(', ', $handymanNames) : 'Handyman';
+    $steps[] = [
+        'status' => 'assigned',
+        'label' => __('messages.assigned_booking') ?? 'Assigned Booking',
+        'description' => 'Service Assigned to ' . $handymanNameStr,
+        'color' => '#fd7e14', // Orange
+    ];
+}
+
+// Show "Ongoing" step
+$steps[] = [
+    'status' => 'on_going',
+    'label' => __('messages.on_going') ?? 'Ongoing',
+    'description' => 'Service is ongoing',
+    'color' => '#007bff', // Blue
+];
+
+// Show "Arrived" step
+$steps[] = [
+    'status' => 'arrived',
+    'label' => 'Arrived',
+    'description' => 'Provider/Handyman Arrived',
+    'color' => '#17a2b8', // Teal/Info
+];
+
+// Show "In Progress" step
+$steps[] = [
+    'status' => 'in_progress',
+    'label' => 'In Progress',
+    'description' => 'Service is currently in progress',
+    'color' => '#6f42c1', // Purple
+];
+
+// Show "Hold" step only if currently on hold or was on hold in the past
+if ($currentStatus == 'hold' || isset($activityStatusTimes['hold'])) {
+    $steps[] = [
+        'status' => 'hold',
+        'label' => __('messages.hold') ?? 'Hold',
+        'description' => 'Service Put on Hold - Reason: ' . ($bookingdata->reason ?? 'None'),
+        'color' => '#6c757d', // Grey
+    ];
+}
+
+// Show "Pending Approval" step only if currently pending approval or was pending approval in the past
+if ($currentStatus == 'pending_approval' || isset($activityStatusTimes['pending_approval'])) {
+    $steps[] = [
+        'status' => 'pending_approval',
+        'label' => 'Pending Approval',
+        'description' => 'Pending Approval from Customer',
+        'color' => '#6f42c1', // Purple
+    ];
+}
+
+// If terminal (cancelled, rejected, failed), insert the terminal step here
+if ($isTerminal) {
+    $terminalLabel = ucwords($currentStatus);
+    $terminalDesc = 'Booking has been ' . $currentStatus;
+    if ($currentStatus == 'cancelled') {
+        $terminalLabel = trim(str_replace([':name', ':'], '', __('messages.cancelled') ?? 'Cancelled'));
+        $terminalDesc = 'Booking has been cancelled';
+    } elseif ($currentStatus == 'rejected') {
+        $terminalLabel = __('messages.rejected') ?? 'Rejected';
+        $terminalDesc = 'Booking has been rejected';
+    } elseif ($currentStatus == 'failed') {
+        $terminalLabel = __('messages.failed') ?? 'Failed';
+        $terminalDesc = 'Booking has failed';
+    }
+    
+    $steps[] = [
+        'status' => $currentStatus,
+        'label' => $terminalLabel,
+        'description' => $bookingdata->reason ? $bookingdata->reason : $terminalDesc,
+        'color' => '#dc3545', // Red
+        'is_terminal' => true,
+    ];
+} else {
+    // Show Completed step
+    $steps[] = [
+        'status' => 'completed',
+        'label' => __('messages.completed') ?? 'Completed',
+        'description' => 'Service Completed - Final Amount: ' . getPriceFormat($bookingdata->total_amount),
+        'color' => '#28a745', // Green
+    ];
+}
 @endphp
 <div class="row">
     <!-- Timeline Column -->
@@ -11,124 +171,63 @@ $timezone = getTimeZone();
             <h2 class="modal-title" id="breakdownModalLabel">{{__('messages.booking_status')}}</h2>
 
             <div class="vertical-timeline mb-4">
-                <!-- New Booking (Always show) -->
-                <div class="timeline-item {{ $bookingdata->status == 'pending' ? 'active' : '' }}">
-                    <div class="timeline-date">
-                        {{ \Carbon\Carbon::parse($bookingdata->created_at)->timezone($timezone)->format($datetime->time_format) }}
-                        <div class="date-details">
-                            {{ \Carbon\Carbon::parse($bookingdata->created_at)->timezone($timezone)->format($datetime->date_format) }}
-                        </div>
-                    </div>
-                    <div class="timeline-content">
-                        <div class="point"></div>
-                        <div class="timeline-info">
-                            <p class="fs-4"><strong>{{__('messages.new_booking')}}</strong></p>
-                            <div class="timeline-details">
-                                <p class="mt-2">New Booking Added by {{ optional($bookingdata->customer)->display_name }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="timeline-connector"></div>
-                </div>
+                @foreach($steps as $step)
+                    @php
+                    $stepStatus = $step['status'];
+                    $stepWeight = $statusWeights[$stepStatus] ?? 99;
+                    
+                    $isCompleted = false;
+                    $isCurrentActive = false;
 
-                @if($bookingdata->status == 'cancelled')
-                <!-- Show only cancelled status after new booking if cancelled -->
-                <div class="timeline-item active">
-                    <div class="timeline-date">
-                        {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->time_format) }}
-                        <div class="date-details">
-                            {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->date_format) }}
-                        </div>
-                    </div>
-                    <div class="timeline-content">
-                        <div class="point"></div>
-                        <div class="timeline-info">
-                            <p class="fs-4"><strong>Cancelled</strong></p>
-                            <div class="timeline-details">
-                                <p class="mt-2 text-danger">Booking has been cancelled</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @else
-                    <!-- Accepted (Show if not cancelled) -->
-                    <div class="timeline-item {{ $bookingdata->status == 'accept' ? 'active' : '' }}">
-                        <div class="timeline-date">
-                            {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->time_format) }}
-                            <div class="date-details">
-                                {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->date_format) }}
-                            </div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="point"></div>
-                            <div class="timeline-info">
-                                <p class="fs-4"><strong>{{__('messages.accept_booking')}}</strong></p>
-                                <div class="timeline-details">
-                                    <p class="mt-2">Booking Accepted by {{ optional($bookingdata->provider)->display_name }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="timeline-connector"></div>
-                    </div>
+                    if ($isTerminal) {
+                        if ($stepStatus === $currentStatus) {
+                            $isCurrentActive = true;
+                        } else {
+                            if ($stepStatus === 'pending') {
+                                $isCompleted = true;
+                            } elseif ($stepStatus === 'assigned') {
+                                $isCompleted = ($assignedTime !== null || $hasHandyman);
+                            } else {
+                                $isCompleted = isset($activityStatusTimes[$stepStatus]);
+                            }
+                        }
+                    } else {
+                        if ($stepStatus === $effectiveStatus) {
+                            $isCurrentActive = true;
+                        } elseif ($stepWeight < $currentWeight) {
+                            $isCompleted = true;
+                        }
+                    }
 
-                    @if($bookingdata->handymanAdded->count() > 0)
-                    <!-- Show assigned only if handyman is assigned -->
-                    <div class="timeline-item {{ $bookingdata->status == 'assigned' ? 'active' : '' }}">
-                        <div class="timeline-date">
-                            {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->time_format) }}
-                            <div class="date-details">
-                                {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->date_format) }}
-                            </div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="point"></div>
-                            <div class="timeline-info">
-                                <p class="fs-4"><strong>{{__('messages.assigned_booking')}}</strong></p>
-                                <div class="timeline-details">
-                                    @foreach($bookingdata->handymanAdded as $handyman)
-                                        <p class="mt-2">Service Assigned to {{ optional($handyman->handyman)->display_name }}</p>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                        <div class="timeline-connector"></div>
-                    </div>
-                    @endif
+                    $stepTime = null;
+                    if ($stepStatus == 'assigned') {
+                        $stepTime = $assignedTime;
+                    } else {
+                        $stepTime = $activityStatusTimes[$stepStatus] ?? null;
+                    }
 
-                    @if($bookingdata->status == 'on_going')
-                    <!-- Show on_going status after assigned -->
-                    <div class="timeline-item active">
+                    if ($stepTime === null && ($isCompleted || $isCurrentActive)) {
+                        if ($stepStatus == 'pending') {
+                            $stepTime = $bookingdata->created_at;
+                        } elseif ($stepStatus == $currentStatus) {
+                            $stepTime = $bookingdata->updated_at;
+                        }
+                    }
+                    if ($stepTime) {
+                        if ($stepTime instanceof \Carbon\Carbon) {
+                            $carbonTime = \Carbon\Carbon::parse($stepTime->toDateTimeString(), $timezone);
+                        } else {
+                            $carbonTime = \Carbon\Carbon::parse($stepTime, $timezone);
+                        }
+                    }
+                    @endphp
+                    
+                    <div class="timeline-item {{ $stepStatus }} {{ $isCurrentActive ? 'active current-active' : '' }} {{ $isCompleted ? 'completed-step' : '' }}" data-status="{{ $stepStatus }}">
                         <div class="timeline-date">
-                            {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->time_format) }}
-                            <div class="date-details">
-                                {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->date_format) }}
-                            </div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="point"></div>
-                            <div class="timeline-info">
-                                <p class="fs-4"><strong>{{__('messages.on_going')}}</strong></p>
-                                <div class="timeline-details">
-                                    <p class="mt-2 text-primary">Service is currently in progress</p>
-                                    @if($bookingdata->handymanAdded->count() > 0)
-                                        @foreach($bookingdata->handymanAdded as $handyman)
-                                            <p class="mt-2">Being handled by {{ optional($handyman->handyman)->display_name }}</p>
-                                        @endforeach
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="timeline-connector"></div>
-                    </div>
-                    @endif
-
-                    <!-- Show completed status (always show but only update details when completed) -->
-                    <div class="timeline-item {{ $bookingdata->status == 'completed' ? 'active' : '' }}">
-                        <div class="timeline-date">
-                            @if($bookingdata->status == 'completed')
-                                {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->time_format) }}
+                            @if($stepTime)
+                                {{ $carbonTime->format($datetime->time_format) }}
                                 <div class="date-details">
-                                    {{ \Carbon\Carbon::parse($bookingdata->updated_at)->timezone($timezone)->format($datetime->date_format) }}
+                                    {{ $carbonTime->format($datetime->date_format) }}
                                 </div>
                             @else
                                 <span class="text-muted">--:--</span>
@@ -138,20 +237,24 @@ $timezone = getTimeZone();
                             @endif
                         </div>
                         <div class="timeline-content">
-                            <div class="point"></div>
+                            <div class="point {{ $isCurrentActive ? 'pulse-active' : '' }}" 
+                                 style="background-color: {{ ($isCompleted || $isCurrentActive) ? $step['color'] : '#e0e0e0' }}; 
+                                        --pulse-box-shadow: {{ $step['color'] }}66; 
+                                        --pulse-box-shadow-fade: {{ $step['color'] }}00;"></div>
                             <div class="timeline-info">
-                                <p class="fs-4"><strong>{{__('messages.completed')}}</strong></p>
+                                <p class="fs-4" style="color: {{ ($isCompleted || $isCurrentActive) ? '#1C1F34' : '#888' }}">
+                                    <strong>{{ $step['label'] }}</strong>
+                                </p>
                                 <div class="timeline-details">
-                                    @if($bookingdata->status == 'completed')
-                                        <p class="mt-2">Service Completed - Final Amount: {{ getPriceFormat($bookingdata->total_amount) }}</p>
-                                    @else
-                                        <p class="mt-2 text-muted">Pending completion</p>
-                                    @endif
+                                    <p class="mt-2" style="color: {{ ($isCompleted || $isCurrentActive) ? '#555' : '#aaa' }}">
+                                        {{ $step['description'] }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                        <div class="timeline-connector" style="border-left-color: {{ $isCompleted ? $step['color'] : '#e0e0e0' }};"></div>
                     </div>
-                @endif
+                @endforeach
             </div>
         </div>
     </div>
@@ -165,8 +268,8 @@ $timezone = getTimeZone();
                     <li class="d-flex justify-content-between mb-2 p-2">
                         <span class="text-muted">{{ __('messages.book_placed') }}:</span>
                         <span class="fw-medium">
-                            {{ \Carbon\Carbon::parse($bookingdata->created_at)->format($datetime->date_format) }} /
-                            {{ \Carbon\Carbon::parse($bookingdata->created_at)->format($datetime->time_format) }}
+                            {{ \Carbon\Carbon::parse($bookingdata->created_at->toDateTimeString(), $timezone)->format($datetime->date_format) }} /
+                            {{ \Carbon\Carbon::parse($bookingdata->created_at->toDateTimeString(), $timezone)->format($datetime->time_format) }}
                         </span>
                     </li>
                     <li class="d-flex justify-content-between mb-2 p-2">
@@ -382,16 +485,16 @@ document.addEventListener('DOMContentLoaded', function() {
 @keyframes pulse {
     0% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+        box-shadow: 0 0 0 0 var(--pulse-box-shadow, rgba(0, 123, 255, 0.4));
     }
     70% {
         transform: scale(1.1);
-        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+        box-shadow: 0 0 0 10px var(--pulse-box-shadow-fade, rgba(0, 123, 255, 0));
     }
     100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
-    }
+        box-shadow: 0 0 0 0 var(--pulse-box-shadow-fade, rgba(0, 123, 255, 0));
+1qwertyui    }
 }
 
 /* Base Timeline Structure */

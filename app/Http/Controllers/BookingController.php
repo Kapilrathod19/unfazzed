@@ -1272,7 +1272,7 @@ class BookingController extends Controller
         $user_id = $auth_user->id;
         $user_data = User::find($user_id);
 
-        $bookingdata = Booking::with('handymanAdded', 'payment', 'bookingExtraCharge', 'bookingAddonService')
+        $bookingdata = Booking::with('handymanAdded', 'payment', 'bookingExtraCharge', 'bookingAddonService', 'bookingActivity')
             ->myBooking()
             ->find($id);
 
