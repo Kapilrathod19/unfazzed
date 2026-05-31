@@ -214,10 +214,10 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                                 {{ optional($bookingdata->provider)->email ?? '-' }}
                                             </a>
                                         </li> -->
-                                        <li class="d-flex align-items-center">
+                                        {{-- <li class="d-flex align-items-center">
                                             <i class="ri-map-pin-line me-2"></i>
                                             <span class="text-wrap">{{ optional($bookingdata->provider)->address ?? '-' }}</span>
-                                        </li>
+                                        </li> --}}
                                     </ul>
                         </div>
                     </div>
@@ -255,10 +255,10 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                                     {{ optional($booking->handyman)->contact_number ?? '-' }}
                                                 </a>
                                             </li>
-                                            <li class="d-flex align-items-center">
+                                            {{-- <li class="d-flex align-items-center">
                                                 <i class="ri-map-pin-line me-2"></i>
                                                 <span class="text-wrap">{{ optional($booking->handyman)->address ?? '-' }}</span>
-                                            </li>
+                                            </li> --}}
                                         </ul>
                                     </div>
                                 @endif

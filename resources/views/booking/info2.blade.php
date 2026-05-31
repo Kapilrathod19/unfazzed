@@ -106,10 +106,10 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                         <p class="mb-0">{{ optional($bookingdata->provider)->contact_number ?? '-' }}</p>
                     </a>
                 </li>
-                <li class="d-flex flex-wrap justify-content-between gap-3">
+                {{-- <li class="d-flex flex-wrap justify-content-between gap-3">
                     <span class="material-icons customer-info-text">{{__('messages.address')}}</span>
                     <p class="customer-info-text">{{ optional($bookingdata->provider)->address ?? '-' }}</p>
-                </li>
+                </li> --}}
             </ul>
         </div>
 
@@ -125,10 +125,10 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                         <p class="mb-0">{{optional($booking->handyman)->contact_number ?? '-'}}</p>
                     </a>
                 </li>
-                <li>
+                {{-- <li>
                     <span class="material-icons  customer-info-text">{{__('messages.address')}}</span>
                     <p class=" customer-info-value mb-0">{{optional($booking->handyman)->address ?? '-'}}</p>
-                </li>
+                </li> --}}
             </ul>
             @endforeach
         </div>
