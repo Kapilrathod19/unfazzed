@@ -130,7 +130,7 @@
                                 </tr>
                                 {{-- <tr>
                                     <td style="padding:4px; text-align: start; color: #1C1F34;">{{ __('messages.address') }}:</td>
-                                    <td style="padding:4px; text-align: start; color: #6B6B6B;">{{optional($bookingdata->customer)->address ?? '-' }}</td>
+                                    <td style="padding:4px; text-align: start; color: #6B6B6B;">{{ optional($bookingdata->addressAdded)->address ?? $bookingdata->address ?? '-' }}</td>
                                 </tr> --}}
                             </tbody>
                         </table>

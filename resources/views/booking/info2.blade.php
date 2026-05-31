@@ -91,7 +91,7 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                 </li>
                 <li class="d-flex flex-wrap justify-content-between gap-3">
                     <span class="material-icons  customer-info-text">{{__('messages.address')}}</span>
-                    <p class="customer-info-text">{{ optional($bookingdata->customer)->address ?? '-' }}</p>
+                    <p class="customer-info-text">{{ optional($bookingdata->addressAdded)->address ?? $bookingdata->address ?? '-' }}</p>
                 </li>
             </ul>
         </div>
