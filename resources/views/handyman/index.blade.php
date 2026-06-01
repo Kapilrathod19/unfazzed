@@ -154,13 +154,13 @@
                         title: "{{ __('messages.address') }}",
                         orderable: false,
                     },
-                    {
-                        data: 'wallet',
-                        name: 'wallet',
-                        title: "{{ __('messages.wallet_amt') }}",
-                        searchable: false,
-                        orderable: false,
-                    },
+                    // {
+                    //     data: 'wallet',
+                    //     name: 'wallet',
+                    //     title: "{{ __('messages.wallet_amt') }}",
+                    //     searchable: false,
+                    //     orderable: false,
+                    // },
                     {
                         data: 'status',
                         name: 'status',

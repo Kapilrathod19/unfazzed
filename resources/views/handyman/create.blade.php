@@ -64,7 +64,7 @@
                                     }}
                             </div>
                             @endif
-                            <div class="form-group col-md-4">
+                            {{-- <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.handymantype')]).' <span class="text-danger">*</span>', 'handymantype_id')->class('form-control-label') }}
                                 <br />
                                 {{ html()->select('handymantype_id', [], old('handymantype_id'))
@@ -74,7 +74,7 @@
                                     ->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.handymantype')])) 
                                     
                                     }}
-                            </div>
+                            </div> --}}
 <!--                     
                             <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.provider_address')]).' <span class="text-danger">*</span>', 'name')->class('form-control-label') }}
@@ -88,31 +88,29 @@
                             </div> -->
                     
                             <div class="form-group col-md-4">
-                                {{ html()->label(__('messages.select_name', ['select' => __('messages.country')]).' <span class="text-danger">*</span>', 'country_id')->class('form-control-label') }}
+                                {{ html()->label(__('messages.select_name', ['select' => __('messages.country')]), 'country_id')->class('form-control-label') }}
                                 <br />
                                 {{ html()->select('country_id', [optional($handymandata->country)->id => optional($handymandata->country)->name], optional($handymandata->country)->id)
                                     ->class('select2js form-group country')
-                                    ->required()
                                     ->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.country')]))
                                     ->attribute('data-ajax--url', route('ajax-list', ['type' => 'country'])) 
                                     }}
                             </div>
                     
                             <div class="form-group col-md-4">
-                                {{ html()->label(__('messages.select_name', ['select' => __('messages.state')]).' <span class="text-danger">*</span>', 'state_id')->class('form-control-label') }}
+                                {{ html()->label(__('messages.select_name', ['select' => __('messages.state')]), 'state_id')->class('form-control-label') }}
                                 <br />
                                 {{ html()->select('state_id', [], [])
                                     ->class('select2js form-group state_id')
-                                    ->required()
                                     ->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.state')]))       
                                     }}
                             </div>
                     
                             <div class="form-group col-md-4">
-                                {{ html()->label(__('messages.select_name', ['select' => __('messages.city')]).' <span class="text-danger">*</span>', 'city_id')->class('form-control-label') }}
+                                {{ html()->label(__('messages.select_name', ['select' => __('messages.city')]), 'city_id')->class('form-control-label') }}
                                 <br />
                                 {{ html()->select('city_id', [], old('city_id'))
-                                    ->class('select2js form-group city_id')->required()->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.city')])) }}
+                                    ->class('select2js form-group city_id')->attribute('data-placeholder', __('messages.select_name', ['select' => __('messages.city')])) }}
                             </div>
                     
                             <div class="form-group col-md-4">
@@ -182,12 +180,12 @@
             var provider_id = "{{ isset($handymandata->provider_id) ? $handymandata->provider_id : '' }}";
             var service_address_id =
                 "{{ isset($handymandata->service_address_id) ? $handymandata->service_address_id : 0 }}";
-            var handymantype_id =
-                "{{ isset($handymandata->handymantype_id) ? $handymandata->handymantype_id : 0 }}";
+            // var handymantype_id =
+            //     "{{ isset($handymandata->handymantype_id) ? $handymandata->handymantype_id : 0 }}";
 
             stateName(country_id, state_id);
             providerAddress(provider_id, service_address_id)
-            handymanType(provider_id, handymantype_id)
+            // handymanType(provider_id, handymantype_id)
             $(document).on('change', '#country_id', function() {
                 var country = $(this).val();
                 $('#state_id').empty();
@@ -202,9 +200,9 @@
             $(document).on('change', '#provider_id', function() {
                 var provider_id = $(this).val();
                 $('#service_address_id').empty();
-                $('#handymantype_id').empty();
+                // $('#handymantype_id').empty();
                 providerAddress(provider_id, service_address_id);
-                handymanType(provider_id, handymantype_id)
+                // handymanType(provider_id, handymantype_id)
             })
 
                 // Initialize intl-tel-input for the contact number
@@ -315,25 +313,25 @@
             });
         }
 
-        function handymanType(provider_id, handymantype_id = "") {
-            var handymantype_route =
-                "{{ route('ajax-list', [ 'type' => 'handymantype','provider_id' =>'']) }}" + provider_id;
-            handymantype_route = handymantype_route.replace('amp;', '');
-
-            $.ajax({
-                url: handymantype_route,
-                success: function(result) {
-                    $('#handymantype_id').select2({
-                        width: '100%',
-                        placeholder: "{{ trans('messages.select_name',['select' => trans('messages.handymantype')]) }}",
-                        data: result.results
-                    });
-                    if (handymantype_id != "") {
-                        $('#handymantype_id').val(handymantype_id).trigger('change');
-                    }
-                }
-            });
-        }
+        // function handymanType(provider_id, handymantype_id = "") {
+        //     var handymantype_route =
+        //         "{{ route('ajax-list', [ 'type' => 'handymantype','provider_id' =>'']) }}" + provider_id;
+        //     handymantype_route = handymantype_route.replace('amp;', '');
+        //
+        //     $.ajax({
+        //         url: handymantype_route,
+        //         success: function(result) {
+        //             $('#handymantype_id').select2({
+        //                 width: '100%',
+        //                 placeholder: "{{ trans('messages.select_name',['select' => trans('messages.handymantype')]) }}",
+        //                 data: result.results
+        //             });
+        //             if (handymantype_id != "") {
+        //                 $('#handymantype_id').val(handymantype_id).trigger('change');
+        //             }
+        //         }
+        //     });
+        // }
     })(jQuery);
     </script>
     @endsection
