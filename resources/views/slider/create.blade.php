@@ -43,6 +43,7 @@
                                 <label class="form-control-label" for="slider_image">{{ __('messages.image') }} <span class="text-danger">*</span></label>
                                 <div class="custom-file">
                                     <input type="file" name="slider_image" class="custom-file-input" onchange="previewImage(event)" accept="image/*" {{ ($sliderdata && getMediaFileExit($sliderdata, 'slider_image')) ? '' : 'required' }}>
+                                     <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 1920 × 1080 px</small>
                                     @if($sliderdata && getMediaFileExit($sliderdata, 'slider_image'))
                                         <label class="custom-file-label upload-label">{{ $sliderdata->getFirstMedia('slider_image')->file_name }}</label>
                                     @else

@@ -1296,7 +1296,7 @@
 
 @endphp
 <div class="iq-sidebar sidebar-default">
-    <div class="iq-sidebar-logo">
+    {{-- <div class="iq-sidebar-logo">
         <a href="{{ route('home') }}" class="header-logo">
             <img src="{{ getSingleMedia(imageSession('get'), 'logo', null) }}"
                 class="img-fluid rounded-normal light-logo site_logo_preview d-none site-logo" alt="logo">
@@ -1310,7 +1310,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </div>
-    </div>
+    </div> --}}
     <div class="side-menu-bt-sidebar wide-device-toggle">
         <span class="iq-toggle-arrow">
             <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon arrow-active wrapper-menu" height="14"
@@ -1320,7 +1320,7 @@
         </span>
     </div>
     <div class="data-scrollbar" data-scroll="1">
-        <div class="user-profile">
+        {{-- <div class="user-profile">
             <div class="avatar">
                 <img class="avatar-50 rounded-circle bg-light" alt="user-icon"
                     src="{{ getSingleMedia(auth()->user(), 'profile_image', null) }}">
@@ -1332,7 +1332,7 @@
                     {{ optional(auth()->user())->last_name ?? '--' }}
                 </span>
             </div>
-        </div>
+        </div> --}}
         <nav class="iq-sidebar-menu">
             <ul id="iq-sidebar-toggle" class="side-menu">
                 @include(config('laravel-menu.views.bootstrap-items'), ['items' => $MyNavBar->roots()])

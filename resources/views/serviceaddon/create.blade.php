@@ -120,6 +120,7 @@
                                 <div class="custom-file">
                                     <input type="file" name="serviceaddon_image" class="custom-file-input"
                                         onchange="previewImage(event)" accept="image/*" required>
+                                        <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 512 × 512 px</small>
                                     @if ($serviceaddon && getMediaFileExit($serviceaddon, 'serviceaddon_image'))
                                         <label
                                             class="custom-file-label upload-label">{{ $serviceaddon->getFirstMedia('serviceaddon_image')->file_name }}</label>

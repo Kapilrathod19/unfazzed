@@ -179,6 +179,7 @@
                                         accept="image/*" required>
                                     <label
                                         class="custom-file-label upload-label">{{ __('messages.choose_file', ['file' => __('messages.attachments')]) }}</label>
+                                    <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 1200 × 900 px</small>
                                 </div>
                                 <img id="service_attachment_preview"
                                     style="margin-top: 10px; max-width: 100%; display: none;" alt="Preview">
@@ -469,10 +470,12 @@
                                                     @if (!empty($stepImage))
                                                         {{ html()->label(__('messages.image') . ' (Optional)', "how_it_done[{$index}][image]")->class('form-control-label') }}
                                                         <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*">
+                                                        <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 800 × 800 px</small>
                                                     @else
                                                         {{ html()->label(__('messages.image') . ' <span class="text-danger">*</span>', "how_it_done[{$index}][image]")->class('form-control-label') }}
                                                         <input type="file" name="how_it_done[{{ $index }}][image]" class="form-control step-image" accept="image/*" required>
-                                                    @endif
+                                                        <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 800 × 800 px</small>
+                                                        @endif
                                                     @if (!empty($stepImage))
                                                         <div class="mt-2">
                                                             <img src="{{ asset('storage/'.$stepImage) }}"
@@ -497,6 +500,7 @@
                                             <div class="form-group col-md-4">
                                                 {{ html()->label(__('messages.image') . ' <span class="text-danger">*</span>', 'how_it_done[0][image]')->class('form-control-label') }}
                                                 <input type="file" name="how_it_done[0][image]" class="form-control step-image" accept="image/*" required>
+                                                <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 800 × 800 px</small>
                                             </div>
                                             <div class="form-group col-md-1 d-flex align-items-end">
                                                 <button type="button" class="btn btn-sm btn-danger remove-step w-100" style="display:none;">
@@ -1338,6 +1342,7 @@
                         <div class="form-group col-md-4">
                             <label class="form-control-label" for="how_it_done[${index}][image]">${stepLabelImage} <span class="text-danger">*</span></label>
                             <input type="file" name="how_it_done[${index}][image]" class="form-control step-image" accept="image/*" required>
+                            <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 800 × 800 px</small>
                             ${imageUrl ? `<div class="mt-2"><img src="${imageUrl.startsWith('http') ? imageUrl : '/storage/' + imageUrl}" alt="Step Image" style="max-width: 80px; max-height: 80px;"></div>` : ''}
                         </div>
                         <div class="form-group col-md-1 d-flex align-items-end">

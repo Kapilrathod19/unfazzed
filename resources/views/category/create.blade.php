@@ -83,7 +83,7 @@
                                 @endif
                             </div>
                             <small class="help-block with-errors text-danger" id="category_image_error"></small>
-                            <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }}</small> <!-- Note for allowed image types -->
+                            <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 512 x 512 px</small> <!-- Note for allowed image types -->
                         </div>
 
                         <img id="category_image_preview" src="" width="150px" />

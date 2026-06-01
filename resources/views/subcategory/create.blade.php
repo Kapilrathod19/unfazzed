@@ -100,7 +100,7 @@
                                 @endif
                             </div>
                             <small id="subcategory_image_error" class="text-danger"></small> <!-- Error message container -->
-                            <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }}</small> <!-- Note for allowed image types -->
+                            <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 800 × 1240 px</small> <!-- Note for allowed image types -->
                         </div>
 
                         <div class="col-md-2 mb-2">

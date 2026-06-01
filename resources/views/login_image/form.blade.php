@@ -19,7 +19,7 @@
                                         <label class="custom-file-label" for="login_image">{{ __('messages.choose_file', ['file' => __('messages.image')]) }}</label>
                                     </div>
                                     <div class="help-block with-errors text-danger"></div>
-                                    <p class="mt-2 text-secondary"><small>{{ __('messages.recommended_size_login_image') ?? 'Recommended size: 1080x1920 px' }} </small></p>
+                                    <small class="text-muted d-block mt-1">{{ __('messages.only_jpg_png_jpeg_allowed') }} Recommended size: 1080 x 1920 px</small>
                                 </div>
 
                                 <div class="mt-2 mb-4">
