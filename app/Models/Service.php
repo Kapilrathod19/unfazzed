@@ -16,7 +16,7 @@ class Service extends Model implements  HasMedia
     protected $table = 'services';
     protected $fillable = [
         'name', 'category_id', 'provider_id' , 'type' , 'is_slot','discount' , 'duration' ,'description',
-        'is_featured', 'status' , 'price' , 'added_by','service_request_status','is_service_request','subcategory_id','service_type','visit_type',
+        'is_featured', 'status' , 'price' , 'mock_price' , 'added_by','service_request_status','is_service_request','subcategory_id','service_type','visit_type',
         'is_enable_advance_payment','advance_payment_amount',
         'meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'slug', 'seo_enabled', 'service_rating', 'service_review'
     ];
@@ -26,6 +26,7 @@ class Service extends Model implements  HasMedia
         'subcategory_id'               => 'integer',
         'provider_id'               => 'integer',
         'price'                     => 'double',
+        'mock_price'                => 'double',
         'discount'                  => 'double',
         'status'                    => 'integer',
         'is_featured'               => 'integer',

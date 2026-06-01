@@ -70,6 +70,7 @@ class ServiceDetailResource extends JsonResource
             'provider_id'   => $this->provider_id,
             'price'         => $this->price,
             'price_format'  => getPriceFormat($this->price),
+            'mock_price'    => $this->mock_price,
             'type'          => $this->type,
             'discount'      => $this->discount,
             'duration'      => $this->duration,

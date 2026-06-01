@@ -133,6 +133,11 @@
                                 {{ html()->text('price', null)->attributes(['min' => 1, 'step' => 'any', 'pattern' => '^\\d+(\\.\\d{1,2})?$'])->placeholder(__('messages.price'))->class('form-control')->required()->id('price') }}
                                 <small class="help-block with-errors text-danger"></small>
                             </div>
+                            <div class="form-group col-md-4" id="mock_price_div">
+                                {{ html()->label('Mock Price', 'mock_price')->class('form-control-label') }}
+                                {{ html()->text('mock_price', $servicedata->mock_price ?? null)->attributes(['min' => 0, 'step' => 'any', 'pattern' => '^\\d+(\\.\\d{1,2})?$'])->placeholder('Mock Price')->class('form-control')->id('mock_price') }}
+                                <small class="help-block with-errors text-danger"></small>
+                            </div>
 
                             <div class="form-group col-md-4" id="discount_div">
                                 {{ html()->label(__('messages.discount') . ' %', 'discount')->class('form-control-label') }}
