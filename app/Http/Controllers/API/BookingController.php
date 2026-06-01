@@ -140,7 +140,7 @@ class BookingController extends Controller
 
 
 
-        $per_page = config('constant.PER_PAGE_LIMIT');
+        $per_page = $booking->count();
         if ($request->has('per_page') && !empty($request->per_page)) {
             if (is_numeric($request->per_page)) {
                 $per_page = $request->per_page;
