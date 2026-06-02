@@ -1574,6 +1574,11 @@ function bookingstatus($status)
 
             break;
 
+        case 'Arrived':
+            $html = '<span class="badge text-info bg-info-subtle">' . $status . '</span>';
+
+            break;
+
         case 'In Progress':
             $html = '<span class="badge text-info bg-info-subtle">' . $status . '</span>';
 
@@ -1591,6 +1596,11 @@ function bookingstatus($status)
 
         case 'Rejected':
             $html = '<span class="badge text-dark bg-light-subtle">' . $status . '</span>';
+
+            break;
+
+        case 'Pending Approval':
+            $html = '<span class="badge text-warning bg-warning-subtle">' . $status . '</span>';
 
             break;
 
