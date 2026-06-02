@@ -586,30 +586,88 @@ class BookingController extends Controller
     }
 
     // -------------------------------------------
-    // AUTO DETERMINE ZONE BY LOCATION
+    // DETERMINE ZONE FROM SERVICE ZONE MAPPING (PRIMARY SOURCE OF TRUTH)
     // -------------------------------------------
+    // Always override zone_id based on the service's actual zone mappings
+    // (zones selected during service creation in service_zone_mappings table)
     $effectiveLat = $bookingAddress ? $bookingAddress->latitude : ($request->latitude ?? null);
     $effectiveLng = $bookingAddress ? $bookingAddress->longitude : ($request->longitude ?? null);
 
-    if (empty($data['zone_id']) && $effectiveLat && $effectiveLng) {
-        $allZones = \App\Models\ServiceZone::where('status', 1)->get();
-        foreach ($allZones as $zone) {
-            $polygon = is_string($zone->coordinates) ? json_decode($zone->coordinates, true) : $zone->coordinates;
-            if (is_array($polygon) && count($polygon) >= 3) {
-                $inside = false;
-                for ($i = 0, $j = count($polygon) - 1; $i < count($polygon); $j = $i++) {
-                    $xi = $polygon[$i]['lat'] ?? null; $yi = $polygon[$i]['lng'] ?? null;
-                    $xj = $polygon[$j]['lat'] ?? null; $yj = $polygon[$j]['lng'] ?? null;
-                    if ($xi !== null && $yi !== null && $xj !== null && $yj !== null && ($yj - $yi) != 0) {
-                        $intersect = (($yi > $effectiveLng) != ($yj > $effectiveLng))
-                            && ($effectiveLat < ($xj - $xi) * ($effectiveLng - $yi) / ($yj - $yi) + $xi);
-                        if ($intersect) $inside = !$inside;
+    // Clear any zone_id from request — we determine it ourselves
+    unset($data['zone_id']);
+
+    if (!empty($data['service_id'])) {
+        // Get all zones where this service is available (mapped during service creation)
+        $serviceZoneIds = \App\Models\ServiceZoneMapping::where('service_id', $data['service_id'])
+            ->pluck('zone_id')
+            ->toArray();
+
+        if (count($serviceZoneIds) === 1) {
+            // Service is mapped to exactly one zone — use it directly
+            $data['zone_id'] = $serviceZoneIds[0];
+            \Log::info("Zone Set (single service zone): Zone ID: {$serviceZoneIds[0]} for Service ID: {$data['service_id']}");
+
+        } elseif (count($serviceZoneIds) > 1 && $effectiveLat && $effectiveLng) {
+            // Service is mapped to multiple zones — use location to pick the correct one
+            $serviceZones = \App\Models\ServiceZone::where('status', 1)
+                ->whereIn('id', $serviceZoneIds)
+                ->get();
+
+            foreach ($serviceZones as $zone) {
+                $polygon = is_string($zone->coordinates) ? json_decode($zone->coordinates, true) : $zone->coordinates;
+                if (is_array($polygon) && count($polygon) >= 3) {
+                    $inside = false;
+                    for ($i = 0, $j = count($polygon) - 1; $i < count($polygon); $j = $i++) {
+                        $xi = $polygon[$i]['lat'] ?? null; $yi = $polygon[$i]['lng'] ?? null;
+                        $xj = $polygon[$j]['lat'] ?? null; $yj = $polygon[$j]['lng'] ?? null;
+                        if ($xi !== null && $yi !== null && $xj !== null && $yj !== null && ($yj - $yi) != 0) {
+                            $intersect = (($yi > $effectiveLng) != ($yj > $effectiveLng))
+                                && ($effectiveLat < ($xj - $xi) * ($effectiveLng - $yi) / ($yj - $yi) + $xi);
+                            if ($intersect) $inside = !$inside;
+                        }
+                    }
+                    if ($inside) {
+                        $data['zone_id'] = $zone->id;
+                        \Log::info("Zone Set (service zone + location match): Zone ID: {$zone->id} for Service ID: {$data['service_id']}, Lat: {$effectiveLat}, Lng: {$effectiveLng}");
+                        break;
                     }
                 }
-                if ($inside) {
-                    $data['zone_id'] = $zone->id;
-                    \Log::info("Zone Detected: {$zone->name} (ID: {$zone->id}) for Lat: {$effectiveLat}, Lng: {$effectiveLng}");
-                    break;
+            }
+
+            // If location didn't match any service zone polygon, use the first service zone
+            if (empty($data['zone_id'])) {
+                $data['zone_id'] = $serviceZoneIds[0];
+                \Log::warning("Zone Fallback (no location match): Using first service zone ID: {$serviceZoneIds[0]} for Service ID: {$data['service_id']}");
+            }
+
+        } elseif (count($serviceZoneIds) > 1) {
+            // Multiple service zones but no lat/lng — use the first service zone
+            $data['zone_id'] = $serviceZoneIds[0];
+            \Log::info("Zone Set (first service zone, no location): Zone ID: {$serviceZoneIds[0]} for Service ID: {$data['service_id']}");
+
+        } else {
+            // Service has no zone mappings — try location-based detection as fallback
+            if ($effectiveLat && $effectiveLng) {
+                $allZones = \App\Models\ServiceZone::where('status', 1)->get();
+                foreach ($allZones as $zone) {
+                    $polygon = is_string($zone->coordinates) ? json_decode($zone->coordinates, true) : $zone->coordinates;
+                    if (is_array($polygon) && count($polygon) >= 3) {
+                        $inside = false;
+                        for ($i = 0, $j = count($polygon) - 1; $i < count($polygon); $j = $i++) {
+                            $xi = $polygon[$i]['lat'] ?? null; $yi = $polygon[$i]['lng'] ?? null;
+                            $xj = $polygon[$j]['lat'] ?? null; $yj = $polygon[$j]['lng'] ?? null;
+                            if ($xi !== null && $yi !== null && $xj !== null && $yj !== null && ($yj - $yi) != 0) {
+                                $intersect = (($yi > $effectiveLng) != ($yj > $effectiveLng))
+                                    && ($effectiveLat < ($xj - $xi) * ($effectiveLng - $yi) / ($yj - $yi) + $xi);
+                                if ($intersect) $inside = !$inside;
+                            }
+                        }
+                        if ($inside) {
+                            $data['zone_id'] = $zone->id;
+                            \Log::info("Zone Set (location fallback, no service mapping): Zone ID: {$zone->id}, Lat: {$effectiveLat}, Lng: {$effectiveLng}");
+                            break;
+                        }
+                    }
                 }
             }
         }
