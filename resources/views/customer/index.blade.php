@@ -11,13 +11,18 @@
                     <div class="card-body p-0">
                         <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-3">
                             <h5 class="fw-bold">{{ $pageTitle ?? trans('messages.list') }}</h5>
-                            @if ($list_status !== 'unverified')
-                                @if ($auth_user->can('user add'))
-                                    <a href="{{ route('user.create') }}" class=" float-end me-1 btn btn-sm btn-primary"><i
-                                            class="fa fa-plus-circle"></i>
-                                        {{ __('messages.add_form_title', ['form' => __('messages.user')]) }}</a>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="{{ route('user.export', ['list_status' => $list_status ?? '', 'column_status' => $filter['status'] ?? '']) }}"
+                                    class="btn btn-sm btn-success"><i class="fas fa-file-excel me-1"></i>
+                                    Export to Excel</a>
+                                @if ($list_status !== 'unverified')
+                                    @if ($auth_user->can('user add'))
+                                        <a href="{{ route('user.create') }}" class="btn btn-sm btn-primary"><i
+                                                class="fa fa-plus-circle"></i>
+                                            {{ __('messages.add_form_title', ['form' => __('messages.user')]) }}</a>
+                                    @endif
                                 @endif
-                            @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,12 +152,12 @@
                         title: "{{ __('messages.contact_number') }}",
                         orderable: false,
                     },
-                    {
-                        data: 'address',
-                        name: 'address',
-                        title: "{{ __('messages.address') }}",
-                        orderable: false,
-                    },
+                    // {
+                    //     data: 'address',
+                    //     name: 'address',
+                    //     title: "{{ __('messages.address') }}",
+                    //     orderable: false,
+                    // },
                     /* @if ($list_status !== 'all' && $list_status !== 'unverified')
                         {
                             data: 'wallet',

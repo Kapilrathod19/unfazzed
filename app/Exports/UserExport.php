@@ -12,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class ProviderExport extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithCustomValueBinder
+class UserExport extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithCustomValueBinder
 {
     protected $columns;
     protected $query;
@@ -21,28 +21,27 @@ class ProviderExport extends DefaultValueBinder implements FromQuery, WithHeadin
     public function __construct($columns = [], $query = null)
     {
         $this->columns = $columns;
-        $this->query = $query ?? User::where('user_type', 'provider');
+        $this->query = $query ?? User::query();
     }
 
     public function query()
     {
-        return $this->query->with('providertype');
+        return $this->query;
     }
 
-    public function map($provider): array
+    public function map($user): array
     {
         $data = [];
-
         $this->rowNumber++;
 
         $columnMap = [
             'colID' => fn() => $this->rowNumber,
-            'colName' => fn() => $provider->display_name ?? '-',
-            'colEmail' => fn() => $provider->email ?? '-',
-            'colContact' => fn() => $provider->contact_number ?? '-',
-            'colProviderType' => fn() => optional($provider->providertype)->name ?? '-',
-            'colStatus' => fn() => $provider->status == 1 ? 'Active' : 'Inactive',
-            'colJoiningDate' => fn() => $provider->created_at ? Carbon::parse($provider->created_at)->format('Y-m-d H:i:s') : '-',
+            'colName' => fn() => $user->display_name ?? '-',
+            'colEmail' => fn() => $user->email ?? '-',
+            'colContact' => fn() => $user->contact_number ?? '-',
+            'colUserType' => fn() => ucfirst($user->user_type),
+            'colStatus' => fn() => $user->status == 1 ? 'Active' : 'Inactive',
+            'colJoiningDate' => fn() => $user->created_at ? Carbon::parse($user->created_at)->format('Y-m-d H:i:s') : '-',
         ];
 
         foreach ($this->columns as $column) {
@@ -61,7 +60,7 @@ class ProviderExport extends DefaultValueBinder implements FromQuery, WithHeadin
             'colName' => 'Name',
             'colEmail' => 'Email',
             'colContact' => 'Contact Number',
-            'colProviderType' => 'Provider Type',
+            'colUserType' => 'User Type',
             'colStatus' => 'Status',
             'colJoiningDate' => 'Joining Date',
         ];

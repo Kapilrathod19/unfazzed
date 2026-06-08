@@ -12,7 +12,9 @@ use Hash;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
-use App\Models\Setting;
+use App\Models\Setting; 
+use App\Exports\UserExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -40,7 +42,7 @@ class CustomerController extends Controller
 
 
 
-   public function index_data(DataTables $datatable, Request $request)
+    public function index_data(DataTables $datatable, Request $request)
 {
     $query = User::query();
     $filter = $request->filter;
@@ -48,7 +50,7 @@ class CustomerController extends Controller
     $user_list_type=$request->list_status;
 
     if (isset($filter)) {
-        if (isset($filter['column_status'])) {
+        if (isset($filter['column_status']) && $filter['column_status'] !== null && $filter['column_status'] !== '' && $filter['column_status'] !== 'all') {
             $query->where('status', $filter['column_status']);
         }
     }
@@ -413,5 +415,38 @@ class CustomerController extends Controller
         else{
             return redirect(RouteServiceProvider::HOME);
         }
+    }
+
+    public function export(Request $request)
+    {
+        $query = User::query();
+        
+        if ($request->column_status !== null && $request->column_status !== '' && $request->column_status !== 'all') {
+            $query->where('status', $request->column_status);
+        }
+
+        if (auth()->user()->hasAnyRole(['admin'])) {
+            $query->withTrashed();
+        }
+
+        if ($request->list_status == 'all') {
+            $query->whereNotIn('user_type', ['admin']);
+        } else if ($request->list_status == 'unverified') {
+            $usertype = ['user', 'provider', 'handyman'];
+            $query->whereIn('user_type', $usertype)->where('is_email_verified', 0);
+        } else {
+            $query->where('user_type', 'user');
+            $query->whereHas('booking');
+        }
+
+        if ($query->count() === 0) {
+            return redirect()->back()->withErrors('No data found for export.');
+        }
+
+        $columns = ['colID', 'colName', 'colEmail', 'colContact', 'colUserType', 'colStatus', 'colJoiningDate'];
+
+        $userExport = new UserExport($columns, $query);
+
+        return Excel::download($userExport, 'users.xlsx');
     }
 }

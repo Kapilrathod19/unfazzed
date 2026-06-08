@@ -260,6 +260,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::resource('user', CustomerController::class);
         Route::get('user/list/{status?}', [CustomerController::class, 'index'])->name('user.all');
         Route::get('user-index-data', [CustomerController::class, 'index_data'])->name('user.index_data');
+        Route::get('user-export', [CustomerController::class, 'export'])->name('user.export');
         Route::post('user-bulk-action', [CustomerController::class, 'bulk_action'])->name('user.bulk-action');
         Route::post('user-action', [CustomerController::class, 'action'])->name('user.action');
         Route::post('user/{id}', [CustomerController::class, 'destroy'])->name('user.destroy');

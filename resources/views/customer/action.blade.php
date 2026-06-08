@@ -4,10 +4,10 @@
 {{ html()->form('DELETE', route('user.destroy', $user->id))->attribute('data--submit', 'user'.$user->id)->open() }}
 <div class="d-flex justify-content-end align-items-center ms-2">
     @if(!$user->trashed())
-    @if($user_list_type !== 'all')
+    {{-- @if($user_list_type !== 'all')
     <a class="me-2" href="{{ route('bank.list',['user_id' => $user->id]) }}" title="{{ __('messages.bank_list',['form' => __('messages.bank_list') ]) }}"><i class="fas fa-university text-primary"></i></a>
-   @endif
-    <a class="me-2" href="{{ route('user.getchangepassword',['id' => $user->id]) }}" title="{{ __('messages.change_password',['form' => __('messages.user') ]) }}"><i class="fa fa-lock text-success "></i></a>
+   @endif --}}
+    {{-- <a class="me-2" href="{{ route('user.getchangepassword',['id' => $user->id]) }}" title="{{ __('messages.change_password',['form' => __('messages.user') ]) }}"><i class="fa fa-lock text-success "></i></a> --}}
         <!-- @if($auth_user->can('user view'))
         <a class="me-2" href="{{ route('user.show',$user->id) }}"><i class="far fa-eye text-secondary"></i></a>
         @endif -->
