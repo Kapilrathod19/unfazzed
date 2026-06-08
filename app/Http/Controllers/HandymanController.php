@@ -12,6 +12,8 @@ use App\Models\Booking;
 use App\Models\BookingHandymanMapping;
 use App\Models\HandymanPayout;
 use App\Models\Wallet;
+use App\Exports\HandymanExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HandymanController extends Controller
 {
@@ -523,5 +525,32 @@ class HandymanController extends Controller
 
         $pageTitle = __('messages.view_form_title', ['form' => __('messages.provider')]);
         return view('handyman.detail', compact('pageTitle', 'handymandata', 'handymanData', 'auth_user', 'data'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = User::where('user_type', 'handyman')->where('status', 1)->whereNotNull('provider_id');
+
+        if (auth()->user()->hasRole('provider')) {
+            $query->where('provider_id', auth()->user()->id);
+        }
+
+        if ($request->list_status == 'pending') {
+            $query = User::where('user_type', 'handyman')->where('status', 0);
+        }
+
+        if ($request->list_status == 'unassigned') {
+            $query = User::where('user_type', 'handyman')->where('status', 1)->whereNull('provider_id');
+        }
+
+        if ($query->count() === 0) {
+            return redirect()->back()->withErrors('No data found for export.');
+        }
+
+        $columns = ['colID', 'colName', 'colEmail', 'colContact', 'colProvider', 'colStatus', 'colJoiningDate'];
+
+        $handymanExport = new HandymanExport($columns, $query);
+
+        return Excel::download($handymanExport, 'handymen.xlsx');
     }
 }

@@ -22,6 +22,8 @@ use App\Models\ServiceZone;
 use App\Models\ServiceZoneMapping;
 use App\Models\ProviderZoneMapping;
 use App\Models\Service;
+use App\Exports\ProviderExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProviderController extends Controller
 {
@@ -753,5 +755,30 @@ class ProviderController extends Controller
         $pageTitle = __('messages.slot', ['form' => __('messages.slot')]);
 
         return view('provider.edittimeslot', compact('auth_user', 'slotsArray', 'pageTitle', 'activeDay', 'provider_id', 'activeSlots', 'providerdata'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = User::where('user_type', 'provider')->where('status', 1);
+
+        if ($request->list_status == 'pending') {
+            $query = User::where('user_type', 'provider')->where('status', 0);
+        }
+
+        if ($request->zone_id) {
+            $query->whereHas('providerZones', function ($q) use ($request) {
+                $q->where('zone_id', $request->zone_id);
+            });
+        }
+
+        if ($query->count() === 0) {
+            return redirect()->back()->withErrors('No data found for export.');
+        }
+
+        $columns = ['colID', 'colName', 'colEmail', 'colContact', 'colProviderType', 'colStatus', 'colJoiningDate'];
+
+        $providerExport = new ProviderExport($columns, $query);
+
+        return Excel::download($providerExport, 'providers.xlsx');
     }
 }

@@ -166,6 +166,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::post('provider-action', [ProviderController::class, 'action'])->name('provider.action');
         Route::post('provider/{id}', [ProviderController::class, 'destroy'])->name('provider.destroy');
         Route::post('provider-bulk-action', [ProviderController::class, 'bulk_action'])->name('provider.bulk-action');
+        Route::get('provider-export', [ProviderController::class, 'export'])->name('provider.export');
         
         Route::get('provider-change-request', [ProviderChangeRequestController::class, 'index'])->name('provider-change-request.index');
         Route::get('provider-change-request-index-data', [ProviderChangeRequestController::class, 'index_data'])->name('provider-change-request.index_data');
@@ -200,6 +201,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::post('handyman-action', [HandymanController::class, 'action'])->name('handyman.action');
         Route::post('handyman/{id}', [HandymanController::class, 'destroy'])->name('handyman.destroy');
         Route::post('assign-provider', [HandymanController::class, 'updateProvider'])->name('handyman.updateProvider');
+        Route::get('handyman-export', [HandymanController::class, 'export'])->name('handyman.export');
 
     });
     Route::get('handymandetail/{id}', [HandymanController::class, 'handyman_detail'])->name('handyman.detail');
