@@ -118,11 +118,11 @@ class HomeController extends Controller
             $data['currency_data'] = currency_data();
         }
 
-        $data['total_tax']  =    Booking::where('status', 'completed')
+        $data['total_paid_completed_bookings']  =    Booking::where('status', 'completed')
             ->whereHas('payment', function ($q) {
                 $q->where('payment_status', 'paid');
             })
-            ->sum('final_total_tax') ?? 0;
+            ->count();
         // $data['total_earning']  = CommissionEarning::whereIn('user_type',['admin', 'demo_admin'])->whereIn('commission_status', ['unpaid','paid'])->sum('commission_amount') ?? 0;
         $promotionalBannerAmount = PromotionalBanner::where('payment_status', 'paid')->sum('total_amount');
         $data['total_earning']  = CommissionEarning::whereIn('user_type', ['admin', 'demo_admin'])
