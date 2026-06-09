@@ -65,8 +65,8 @@
                             <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.select_name', ['select' => __('messages.type')]) . ' <span class="text-danger">*</span>', 'type')->class('form-control-label') }}
                                 <br />
-                                {{ html()->select('type', ['percent' => __('messages.percent'), 'fixed' => __('messages.fixed')], $providertypedata->type)->id('type')->class('form-select select2js')->required()}}
-                                <span class="text-danger">{{ __('messages.hint') }}</span>
+                                {{ html()->select('type', ['percent' => __('messages.percent')], $providertypedata->type)->id('type')->class('form-select select2js')->required()}}
+                                {{-- <span class="text-danger">{{ __('messages.hint') }}</span> --}}
                             </div>
                             
                             <div class="form-group col-md-4">
