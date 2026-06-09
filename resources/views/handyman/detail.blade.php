@@ -8,26 +8,26 @@
                 <div class="card-body p-30">
                         <div class="provider-details-overview ">                            
                             <div class="provider-details-overview__statistics">
-                                <div class="statistics-card statistics-card__style2 statistics-card__pending-withdraw">
+                                {{-- <div class="statistics-card statistics-card__style2 statistics-card__pending-withdraw">
                                     <h2>{{ getPriceFormat($handymanData['pendWithdrwan']) ?? 0}}</h2>
                                     <h3>{{__('messages.pending_withdraw')}}</h3>
-                                </div>
+                                </div> --}}
 
-                            <div class="statistics-card statistics-card__style2 statistics-card__already-withdraw">
+                            {{-- <div class="statistics-card statistics-card__style2 statistics-card__already-withdraw">
                                 <h2>{{getPriceFormat($handymanData['handymanAlreadyWithdrawAmt']) ?? 0}}</h2>
                                 <h3>{{__('messages.already_withdraw')}}</h3>
-                            </div>
+                            </div> --}}
 
                             <div class="statistics-card statistics-card__style2 statistics-card__total-earning">
                                 <h2>{{$handymanData['totalbooking'] ?? 0}}</h2>
                                 <h3>{{__('messages.total_name', ['name' => __('messages.booking')])}}</h3>
                             </div>
 
-                            <div
+                            {{-- <div
                                 class="statistics-card statistics-card__style2 statistics-card__withdrawable-amount">
                                 <h2>{{getPriceFormat($handymanData['wallet']) ?? 0}}</h2>
                                 <h3>{{__('messages.wallet_balance')}}</h3>
-                            </div>
+                            </div> --}}
                         </div>
                         <div class="provider-details-overview__order-overview">
                             <div class="statistics-card statistics-card__order-overview h-100 pb-2">
@@ -66,11 +66,11 @@
                                         <li>
                                             <i class="ri-smartphone-line"></i>
                                             <a
-                                                href="{{ $handymandata->contact_number }}" class="contact-info-text title-text p-0">{{ !empty($handymandata->contact_number) ? $handymandata->contact_number: '-' }}</a>
+                                                href="#" class="contact-info-text title-text p-0">{{ !empty($handymandata->contact_number) ? $handymandata->contact_number: '-' }}</a>
                                         </li>
                                         <li>
                                             <i class="ri-mail-line"></i>
-                                            <a href="{{ $handymandata->email }}" class="contact-info-text heading-colo p-0">{{ $handymandata->email }}</a>
+                                            <a href="#" class="contact-info-text heading-colo p-0">{{ $handymandata->email }}</a>
                                         </li>
                                         <li>
                                             <i class="ri-map-2-line"></i>
