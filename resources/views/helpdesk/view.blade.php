@@ -60,22 +60,28 @@
                                         <tr>
                                             <td width="25%"><span>{{ __('messages.description') }} : </span></td>
                                             <td>
-                                                <div class="d-flex gap-2 align-items-center">
-                                                    @php
-                                                        $attachmentUrls = getAttachments($helpdeskdata->getMedia('helpdesk_attachment'));
-                                                        $firstAttachmentUrl = $attachmentUrls[0] ?? null; // Use a default image if empty
-                                                    @endphp
-                                                    @if($firstAttachmentUrl !== null)
-                                                    <img src="{{ $firstAttachmentUrl }}" alt="avatar" class="avatar avatar-40">   
-                                                    @endif             
-                                                    <div class="text-start">
-                                                        <span class="">{{ $helpdeskdata->description ?? '--' }}</span>
-                                                    </div>
+                                                @php
+                                                    $attachmentUrls = getAttachments($helpdeskdata->getMedia('helpdesk_attachment'));
+                                                    $firstAttachmentUrl = $attachmentUrls[0] ?? null; // Use a default image if empty
+                                                @endphp
+                                                <div class="text-start">
+                                                    <span class="">{{ $helpdeskdata->description ?? '--' }}</span>
                                                 </div>
                                             </td>
                                         </tr>
                                     </table>                                      
                                 </div>
+
+                                @if(!empty($firstAttachmentUrl))
+                                <div class="mt-4 card">
+                                    <div class="card-body p-3 text-center">
+                                        <h5 class="text-start mb-3">{{ __('messages.image') }}</h5>
+                                        <div class="helpdesk-image-preview text-center">
+                                            <img src="{{ $firstAttachmentUrl }}" alt="helpdesk attachment" class="img-fluid rounded border helpdesk-image-clickable" style="max-height: 350px; cursor: pointer; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                             
                             <div class="rounded-2 helpdesk-note col-md-7">
@@ -147,8 +153,8 @@
                                                                 $attachmentUrls = $index === 0 ? getAttachments($helpdeskdata->getMedia('helpdesk_attachment')) : getAttachments($activity->getMedia('helpdesk_activity_attachment'));
                                                                 $firstAttachmentUrl = $attachmentUrls[0] ?? null; // Use a default image if empty
                                                             @endphp
-                                                            @if($firstAttachmentUrl !== null)
-                                                                <img src="{{ $firstAttachmentUrl }}" alt="avatar" class="avatar avatar-40">
+                                                            @if(!empty($firstAttachmentUrl))
+                                                                <img src="{{ $firstAttachmentUrl }}" alt="avatar" class="avatar avatar-40 helpdesk-image-clickable" style="cursor: pointer;">
                                                             @endif
                                                                 <div class="text-start" id="messages">
                                                                     <span>{{ $activity->messages ?? '--' }}</span>
@@ -224,6 +230,21 @@
         </div>
     </main>
 
+    <!-- Image Popup Modal -->
+    <div class="modal fade" id="imagePopupModal" tabindex="-1" aria-labelledby="imagePopupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imagePopupModalLabel">{{ __('messages.image') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="" id="popupImage" class="img-fluid rounded" alt="helpdesk image large" style="max-height: 75vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
 </x-master-layout>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -267,6 +288,30 @@
                 console.warn(`Element with ID messages-${index} not found.`);
             }
         });
+    });
+
+    // Image popup functionality
+    document.addEventListener('click', function(e) {
+        const target = e.target;
+        if (target && target.classList.contains('helpdesk-image-clickable')) {
+            e.preventDefault();
+            const src = target.getAttribute('src');
+            const popupImg = document.getElementById('popupImage');
+            if (popupImg) {
+                popupImg.setAttribute('src', src);
+            }
+            // Trigger Bootstrap modal using jQuery if available, or fallback to native Bootstrap 5 API
+            if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+                $('#imagePopupModal').modal('show');
+            } else if (typeof bootstrap !== 'undefined') {
+                const modalEl = document.getElementById('imagePopupModal');
+                let modalInst = bootstrap.Modal.getInstance(modalEl);
+                if (!modalInst) {
+                    modalInst = new bootstrap.Modal(modalEl);
+                }
+                modalInst.show();
+            }
+        }
     });
 });
 

@@ -195,7 +195,10 @@ class HelpDeskController extends Controller
         $this->sendNotification($activity_data);
 
         storeAttachments($request, 'helpdesk_attachment', $result);
-        storeAttachments($request, 'helpdesk_activity_attachment', $activity_data);
+        $activity = \App\Models\HelpDeskActivityMapping::where('helpdesk_id', $result->id)->first();
+        if ($activity) {
+            storeAttachments($request, 'helpdesk_activity_attachment', $activity);
+        }
     
         $message = __('messages.update_form',[ 'form' => __('messages.helpdesk') ] );
 		if($result->wasRecentlyCreated){

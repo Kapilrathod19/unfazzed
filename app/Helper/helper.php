@@ -206,6 +206,8 @@ function storeAttachments($request, $attachmentPrefix, $data)
                 }
             }
             storeMediaFile($data, $file, $attachmentPrefix);
+        } elseif ($request->hasFile($attachmentPrefix)) {
+            storeMediaFile($data, $request->file($attachmentPrefix), $attachmentPrefix);
         }
     } else {
 
