@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <title>Invoice</title>
     <style>
         body {
             font-family: Inter;
