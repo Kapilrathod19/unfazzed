@@ -10,9 +10,9 @@
                 <div class="card">
                     <div class="card-body p-30">
                         <div class="provider-details-overview">
-                            <div class="provider-details-overview__statistics">
+                             <div class="provider-details-overview__statistics">
                                 <div class="statistics-card statistics-card__style2 statistics-card__pending-withdraw">
-                                    <h2>{{ getPriceFormat($providerData['pendWithdrwan']) ?? 0}}</h2>
+                                    <h2>{{ getPriceFormat($providerData['wallet']) ?? 0}}</h2>
                                     <h3>{{__('messages.pending_withdraw')}}</h3>
                                 </div>
 
@@ -25,10 +25,10 @@
                                     <h2>{{$providerData['total_booking'] ?? 0}}</h2>
                                     <h3>{{__('messages.total_name', ['name' => __('messages.booking')])}}</h3>
                                 </div>
-                                <div class="statistics-card statistics-card__style2 statistics-card__withdrawable-amount">
+                                <!-- <div class="statistics-card statistics-card__style2 statistics-card__withdrawable-amount">
                                     <h2>{{getPriceFormat($providerData['wallet']) ?? 0}}</h2>
                                     <h3>{{__('messages.wallet_balance')}}</h3>
-                                </div>
+                                </div> -->
                             </div>
                             <div class="provider-details-overview__order-overview rounded-2">
                                 <div class="statistics-card statistics-card__order-overview h-100 pb-2">
