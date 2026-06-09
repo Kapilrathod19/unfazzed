@@ -675,7 +675,7 @@
 } */
 
 
-        $menu
+        /* $menu
             ->add(
                 '<span>' .
                     __('messages.list_form_title', ['form' => __('messages.coupons')]) .
@@ -724,7 +724,7 @@
 <path d="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
 </svg>',
             )
-            ->link->attr(['class' => '']);
+            ->link->attr(['class' => '']); */
 
         $menu
             ->add(
